@@ -10,7 +10,7 @@ rMHF is a library mainly for use in aggregating, wrangling, and statistically mo
 
 Other analyses and multi-scale aggregation functions: 
  
-**What's definitely not here**
+**What's not here**
  - Any form of data or medical information whatsoever.
  - Anything identifiable about anyone.
  - Figures/results.
