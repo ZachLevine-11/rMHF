@@ -116,6 +116,7 @@ orderPersonDf <- function(personDataFrame){
   return(personDataFrameOrdered)
 }
 
+
 #Create the master dataset, copying MET minute values over to the corresponding appointment and patient, and setting any non reported MET values as NA.
 #Make sure to set the working directory to the directory containing the .csv files before you run any of these functions.
 create_data <- function(){
