@@ -1,7 +1,7 @@
 #Iterate over the Met value and return TRUE if there is a dash in the string - indicating that we are dealing with a range
 check_ifRange <- function(metValue){
   rangeCounter <- 1
-  while (rangeCounter <= str_length(metValue)){
+  while (rangeCounter <= stringr::str_length(metValue)){
     letter <- substr(metValue, start = rangeCounter, stop = rangeCounter)
     if (letter == "-"){
         #Make sure that a single value followed by a "met-mins" unit is not interpreted as a range by checking the class of characters around the dash. If the characters can't be converted to integers, then the dash is part of a "met-min" tag and should be treated as a value.
@@ -28,7 +28,6 @@ check_ifRange <- function(metValue){
   }
   return(FALSE)
 }
-
 #Extract the range from a MET range column, and return it as an integer atomic vector of the form c(upper, lower).
 extractRange <- function(metValue){
   dashIndex <- gregexpr(pattern = "-", metValue)[[1]][1]
