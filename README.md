@@ -1,5 +1,4 @@
-#####  What this is
-Data analysis for the MyHeart Fitness paper, written in the statistical programing language R.
+#####  A library for analsyses of the MHF cardiac prevention program.
+Written in the statistical programing language R, for confidentiality no data is included with the package.
 
-#### To do:
-- [ ] Percentage of referred and attended an appointment >= 1
+
