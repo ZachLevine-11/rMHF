@@ -3,7 +3,7 @@ rMHF is a library mainly for my personal use in aggregating, wrangling, and stat
 
 **What is included here:**
 
-2019_paper.R:
+2019-*.R:
  - Methods for aggregating data stored Acuro Electronic Medical Record (EMR) databases
  - Visualization and statistical modelling methods
  - Other methods more geared towards specific uses, i.e. to differentiate between various entry forms of MET minutes.
