@@ -71,3 +71,47 @@ aggregate <- function(df, maxApts = 4){
   plotDf <- data.frame(aptMeanWeeksofFollowUpMap, aptMeanMetsMap, numAttendeesVector)
   return(invisible(plotDf))
 }
+
+
+
+#Create and aggregate attendance data.
+#Make sure you're in the patientData directory in the Desktop before you run this.
+#Make sure the mmaxApts value matches that used in the function call to aggregate() if you're trying to superimpose the plots.
+#Make sure you're not using an excluded visit version of the data, i.e. catch_missing(mode = "excludeVisit")
+create_aggregate_attendance <- function(maxApts = 4){
+  df <- read.csv("attendance.csv", stringsAsFactors = FALSE)
+  justUniquePeople <- unique(df$PHN)
+  numPeople <- length(justUniquePeople)
+  Nones <- c()
+  Nzeroes <- c()
+  for (i in 1:maxApts){
+    Nones <- c(Nones, 0)
+    Nzeroes <- c(Nzeroes, 0)
+  }
+  #Use a hash table that stores the number of 1's and 0's as a tuple in the form the form c(num0's, num1's) for the ith appointment in the ith index of aptMap.
+  for (i in 1:numPeople){
+    #i counts the person.
+    personPHN <- justUniquePeople[i]
+    personAppointmentIndices <- df$PHN == personPHN
+    personDataFrame <- df[personAppointmentIndices,]
+    numApts <- nrow(personDataFrame)
+    indexToUse <- min(numApts, maxApts)
+    #To avoid indexing errors, only use the number of appointments if it's less than maxApts.
+    for (j in 1:indexToUse){
+      #j counts the number of the appointment.
+      if (personDataFrame[j, "Value"] == 0){
+        #Add one to the number of 0's for that appointment.
+        Nzeroes[j] <- Nzeroes[j] + 1
+      }
+      else{
+        #Add one to the number of 1's for that appointment.
+        Nones[j] <- Nones[j] + 1
+      }
+      #Now the i-1th index of aptWeeksofFollowUpMap contains all the weeks of follow entries up that the ith appointment occured at. Let's grab the mean of it.
+    }
+  }
+  aptNumbers <- (1:maxApts) - 1
+  weeksofFollowUp <- aggregate(create_data())$aptMeanWeeksofFollowUpMap
+  aggregate_df <- data.frame(aptNumbers, weeksofFollowUp, Nones, Nzeroes)
+  return(invisible(aggregate_df))
+}
