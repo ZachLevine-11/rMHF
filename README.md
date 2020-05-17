@@ -1,5 +1,5 @@
 **What this is:**
-rMHF is a library mainly for my personal use in aggregating, wrangling, and statistically modelling data.
+rMHF is a library mainly for use in aggregating, wrangling, and statistically modelling data.
 
 **What is included here:**
 
