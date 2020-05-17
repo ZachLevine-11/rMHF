@@ -1,6 +1,3 @@
-library(ggplot2)
-library(dplyr)
-
 #Iterate over the Met value and return TRUE if there is a dash in the string - indicating that we are dealing with a range
 check_ifRange <- function(metValue){
   rangeCounter <- 1
@@ -62,7 +59,6 @@ justValue <- function(metValue){
 
 #Return an integer vector for weeks of follow up for each appointment a patient has.
 makeWeeksofFollowUpVector <- function(datesTimesDataFrame){
-  library("lubridate")
 #First convert the dates to R date objects. This will make our lives a lot easier.
   counter <- 1
   nApts <- nrow(datesTimesDataFrame)
@@ -85,7 +81,6 @@ makeWeeksofFollowUpVector <- function(datesTimesDataFrame){
 
 #Add a dash separator into the time column of the dataset to make it amenable to date analysis.
 addTimeSep <- function(aptDataFrame){
-  library("stringr")
   times <- aptDataFrame[,"Appointment.Time"]
   newTimes <- rep(0, length(times))
   counter <- 1
@@ -114,7 +109,6 @@ addTimeSep <- function(aptDataFrame){
 #Sort each person's appointment dataframe into ascending order by appointment, so that the intake date and elapsed weeks into follow-up can be reliable set and used.
 #Return the ordered data.frame for each person.
 orderPersonDf <- function(personDataFrame){
-  library("lubridate")
   #First set the person's appointment date stamps to the format R can use.
   personDataFrame$Appointment.Date <- lubridate::mdy(personDataFrame$Appointment.Date)
   #We can sort by day, ignoring time, because no person would have had two appointments on the same day.
@@ -125,10 +119,6 @@ orderPersonDf <- function(personDataFrame){
 #Create the master dataset, copying MET minute values over to the corresponding appointment and patient, and setting any non reported MET values as NA.
 #Make sure to set the working directory to the directory containing the .csv files before you run any of these functions.
 create_data <- function(){
-  library("stringr")
-  library("ggplot2")
-  library("dplyr")
-  library("lubridate")
   aptTypes <- read.csv("allApptsFinal.csv", stringsAsFactors = FALSE)
   justMets <- read.csv("metMinsFinal.csv", stringsAsFactors = FALSE)
   combinedData <- aptTypes
@@ -375,7 +365,6 @@ isMissing <- function(metData){
 #Set mode to "previous" to set missing reported MET values to the reported met value at a previous appointment, and delete appointments from the dataset if there are no previous values to use (if the patient dropped out of the program, or if they never reported another MET value).
 #Set mode to "globalZero" to globally set all missing reported MET values to 0.
 catch_missing <- function(df, mode){
-  library("dplyr")
   if (mode == "excludeVisit"){
     theDf <- data.frame()
     counter <- 1
@@ -519,7 +508,6 @@ aggregate <- function(df, maxApts = 4){
 
 #Draw a plot of each person's MET values
 individual_plot <- function(df){
-  library("ggplot2")
   plot(0,0,xlim = c(0, 5),ylim = c(0,2500),type = "n", ylab = "Reported MET Minutes", xlab = "Appointment number, 0 = intake")
   justUniquePeople <- unique(df$PHN)
   numPeople <- length(justUniquePeople)
@@ -562,7 +550,6 @@ individual_plot <- function(df){
 
 #Run catch_missing on data first before plotting it - otherwise it won't work.
 aggregate_plot <- function(df){
-  library("ggplot2")
   df <- aggregate(df, 4)
   p <- ggplot(data = df, mapping = aes(x = aptMeanWeeksofFollowUpMap, y = aptMeanMetsMap)) +
     geom_point(colour = "black") +
@@ -621,7 +608,6 @@ create_aggregate_attendance <- function(maxApts = 4){
 #Make sure you're in the patientData directory in the Desktop before you run this.
 #Set df to to be the result of create_data(), which you should run before this to save time debugging.
 get_total_intake_size <- function(df){
-  library("lubridate")
   all_df <- df
   attendance_df <- read.csv("attendance.csv", stringsAsFactors = FALSE)
   numIntakeOnes <- 0
@@ -644,7 +630,6 @@ get_total_intake_size <- function(df){
 #Set useWeeksofFollowUp to TRUE to use weeks of follow-up on the x axis, and set it to false to use appointment numbers (0 for intake).
 #Set holdConstant to TRUE to set the denominator for every appointment to be the intake appointment sample size.
 plot_attendance <- function(maxApts = 4, useWeeksofFollowUp = TRUE, holdConstant = FALSE){
-  library("ggplot2")
   df <- create_aggregate_attendance(maxApts)
   if (holdConstant){
     theData <- create_data()
@@ -670,7 +655,6 @@ plot_attendance <- function(maxApts = 4, useWeeksofFollowUp = TRUE, holdConstant
 
 #Statistics on age in the program
 ageStats <- function(df){
-  library("lubridate")
   df$age <- lubridate::mdy("08-08-2019")- lubridate::mdy(df$Birthdate)
   ageData <- c(mean(df$age, na.rm = TRUE), sd(df$age, na.rm = TRUE))
   names(ageData) <- c("Mean Age", "Stdev")
