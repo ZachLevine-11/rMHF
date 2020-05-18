@@ -94,7 +94,5 @@ create_data <- function(){
   #We don't need these fields
   combinedData <- combinedData[, -c(6, 7, 10, 12, 13, 14,  16)]
   combinedData <- combinedData[combinedData$Appointment.Type != "OTN No Show Subsequent",]
-  #This is an obvious outlier, so let's remove it.
-  combinedData <- combinedData[combinedData$PHN != "4121945572YX",]
   return(combinedData)
 }
