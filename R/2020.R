@@ -34,3 +34,13 @@ grab_march16 <- function(df = read_data()){
   grabbedWeeks <- df[df$Date %in% dateEntries,]
   return(grabbedWeeks)
 }
+
+#Run a time series analysis on the results of a grab function, such as grab_march16, using the which column.
+timeSeries <- function(data = grab_march16(), which = "Met-minutes"){
+  #Run the time series, grabbing raw values so stl doesn't think the data is univariate.
+  ts2019 <- ts(c(data[[1, which]], data[[2, which]], data[[3, which]]), start = 1, deltat = 1/52)
+  ts2020 <- ts(c(data[[4 ,which]], data[[5, which]], data[[6, which]]), start = 1, deltat = 1/52)
+  #Fix the dimnames so these work with stl.
+  packagedts <- list("2019" = ts2019, "2020" = ts2020)
+  return(packagedts)
+}
