@@ -26,3 +26,11 @@ read_data <- function(fn = "2020Data.csv"){
   #And we're done.
   return(df)
 }
+
+#Grab the entries around the week of March 16 for both years (2019, 2020) in question.
+#df should be the result of read_data(), and it's set to that by default.
+grab_march16 <- function(df = read_data()){
+  dateEntries <- c("first" =  "March4-11", "second" = "March 12-19", "third" = "March20-27")
+  grabbedWeeks <- df[df$Date %in% dateEntries,]
+  return(grabbedWeeks)
+}
