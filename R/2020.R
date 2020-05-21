@@ -27,8 +27,9 @@ read_data <- function(fn = "2020Data.csv"){
   return(df)
 }
 
+#' @import lubridate
 #Run a time series analysis on read_data(). Change the column selector to be whatever column is in question.
 timeSeries <- function(data = read_data()){
-  TS <- ts(data$"Met-minutes", frequency = 2)
-  return(TS)
+  #The time unit is one quarter of a year.
+  ts2019 <- ts(data$"Met-minutes"[1:11], frequency = 52, start = c(2019.083))
 }
