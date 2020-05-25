@@ -28,8 +28,37 @@ read_data <- function(fn = "2020Data.csv"){
 }
 
 #' @import lubridate
-#Run a time series analysis on read_data(). Change the column selector to be whatever column is in question.
-timeSeries <- function(data = read_data()){
-  #The time unit is one quarter of a year.
-  ts2019 <- ts(data$"Met-minutes"[1:11], frequency = 52, start = c(2019.083))
+#Run an additive time series analysis on read_data() specifically around the three weeks containing March 16.
+#Change the column selector to be whatever column is in question.
+mhf_ts <- function(data = read_data(), var = "Met-minutes"){
+  ts2019 <- ts(data[1:11, var], frequency = 1, start = c(5), end = c(18))
+  ts2020 <- ts(data[12:nrow(data), var], frequency = 1, start = c(6), end = c(19))
+  return(list("2019" = ts2019, "2020" = ts2020))
+}
+
+#Identify the trend in a time series by moving average.
+#Year selects the year in question.
+#tslist should be a list of two time series, most usefully the result of timeSeries().
+#' @import forecast
+ma_ts <- function(year, tsList = mhf_ts()) {
+  TS <- tsList[[year]]
+  ma_ts <- forecast::ma(TS, order = 2)
+  return(ma_ts)
+}
+
+#Grab the entries around the week of March 16 for a year (2019, 2020) in question for a time series.
+march16_ts <- function(TS){
+  #Return data matching the indices for the three weeks surrounding and including march 16.
+  TS <- TS[5:7]
+  return(TS)
+}
+
+#' @import forecast
+#Identify the trend in a time series by least squares regresion using a simple linear model.
+#Year selects the year in question.
+#tslist should be a list of two time series, most usefully the result of timeSeries().
+lm_ts <- function(year, tsList = mhf_ts()){
+  TS <- tsList[[year]]
+  fit <- forecast::tslm(formula = TS ~ trend )
+  return(fit)
 }
