@@ -2,7 +2,7 @@
 #' @import dplyr
 #' @import anytime
 read_data <- function(fn = "2020Data.csv"){
-  df <- (read.csv(system.file(fn, package = "RMHF"), stringsAsFactors = FALSE))
+  df <- read.csv(system.file(fn, package = "RMHF"), stringsAsFactors = FALSE)
   #Drop the empty rows:
   df <- df[c(1:11, 12:nrow(df)),]
   #Put 2020 in as a set of columns and order properly
@@ -31,8 +31,8 @@ read_data <- function(fn = "2020Data.csv"){
 #Run an additive time series analysis on read_data() specifically around the three weeks containing March 16.
 #Change the column selector to be whatever column is in question.
 mhf_ts <- function(data = read_data(), var = "Met-minutes", single_df = FALSE){
-  ts2019 <- ts(data[1:11, var], frequency = 1, start = c(5), end = c(18))
-  ts2020 <- ts(data[12:nrow(data), var], frequency = 1, start = c(6), end = c(19))
+    ts2019 <- ts(data$var[1:11], frequency = 1, start = c(5), end = c(18))
+    ts2020 <- ts(data$var[12:nrow(data)], frequency = 1, start = c(6), end = c(19))
   packagedData <- list("2019" = ts2019, "2020" = ts2020)
   if (single_df){
     return(data.frame(packagedData))
@@ -66,7 +66,7 @@ march16_ts <- function(TS){
 #tslist should be a list of two time series, most usefully the result of timeSeries().
 lm_ts <- function(year, variable = "Met-minutes", tsList = mhf_ts(var = variable)){
   TS <- tsList[[year]]
-  fit <- forecast::tslm(formula = TS ~ trend )
+  fit <- forecast::tslm(formula = TS ~ trend)
   return(fit)
 }
 
