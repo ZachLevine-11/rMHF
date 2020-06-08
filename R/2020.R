@@ -16,7 +16,7 @@ read_data <- function(fn = "2020Data.csv"){
   #Add the date for the 2019 dates
   df[1:12,1] <- df[12:nrow(df),1]
   #Properly type the data.
-  df <- data.frame(df)
+  df <- data.frame(df, stringsAsFactors = FALSE)
   #Add a column to keep track of the year.
   df <- dplyr::bind_cols("Year" = c(NA, rep("2019", 11), rep("2020", 11)), df)
   #Name everything properly.
@@ -31,8 +31,8 @@ read_data <- function(fn = "2020Data.csv"){
 #Run an additive time series analysis on read_data() specifically around the three weeks containing March 16.
 #Change the column selector to be whatever column is in question.
 mhf_ts <- function(data = read_data(), var = "Met-minutes", single_df = FALSE){
-    ts2019 <- ts(data$var[1:11], frequency = 1, start = c(5), end = c(18))
-    ts2020 <- ts(data$var[12:nrow(data)], frequency = 1, start = c(6), end = c(19))
+    ts2019 <- ts(data[1:11, var], frequency = 1, start = c(5), end = c(18))
+    ts2020 <- ts(data[12:nrow(data), var], frequency = 1, start = c(6), end = c(19))
   packagedData <- list("2019" = ts2019, "2020" = ts2020)
   if (single_df){
     return(data.frame(packagedData))
