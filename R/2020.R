@@ -69,9 +69,3 @@ lm_ts <- function(year, variable = "Met-minutes", tsList = mhf_ts(var = variable
   fit <- forecast::tslm(formula = TS ~ trend)
   return(fit)
 }
-
-## T-test additive extracted time trends for Met-minutes and time in 2019.
-## To do this again, grab the time trends from lm_ts and put them in the y place. We've encoded (2019, 2020) as the dummy variable A2019, which is only equal to one if the ith observation is from 2019.
-hardcoded_t_test <- function(){
-  return(t.test(y = c(0.0967, 0.2154), x= c(0,1)))
-}
