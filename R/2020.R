@@ -1,6 +1,7 @@
 #' @import ggplot2
 #' @import dplyr
 #' @import anytime
+#' @export
 read_data <- function(fn = "2020Data.csv"){
   df <- read.csv(system.file(fn, package = "RMHF"), stringsAsFactors = FALSE)
   #Drop the empty rows:
@@ -30,6 +31,7 @@ read_data <- function(fn = "2020Data.csv"){
 #' @import lubridate
 #Run an additive time series analysis on read_data() specifically around the three weeks containing March 16.
 #Change the column selector to be whatever column is in question.
+#'@export
 mhf_ts <- function(data = read_data(), var = "Met-minutes", single_df = FALSE){
     ts2019 <- ts(data[1:11, var], frequency = 1, start = c(5), end = c(18))
     ts2020 <- ts(data[12:nrow(data), var], frequency = 1, start = c(6), end = c(19))
@@ -46,6 +48,7 @@ mhf_ts <- function(data = read_data(), var = "Met-minutes", single_df = FALSE){
 #Year selects the year in question.
 #tslist should be a list of two time series, most usefully the result of timeSeries().
 #' @import forecast
+#' @export
 ma_ts <- function(year, tsList = mhf_ts()) {
   TS <- tsList[[year]]
   ma_ts <- forecast::ma(TS, order = 2)
@@ -53,6 +56,7 @@ ma_ts <- function(year, tsList = mhf_ts()) {
 }
 
 #Grab the entries around the week of March 16 for a year (2019, 2020) in question for a time series.
+#'@export
 march16_ts <- function(TS){
   #Return data matching the indices for the three weeks surrounding and including march 16.
   TS <- TS[5:7]
@@ -64,8 +68,20 @@ march16_ts <- function(TS){
 #Year selects the year in question.
 #Variable selects the variable
 #tslist should be a list of two time series, most usefully the result of timeSeries().
+#'@export
 lm_ts <- function(year, variable = "Met-minutes", tsList = mhf_ts(var = variable)){
   TS <- tsList[[year]]
   fit <- forecast::tslm(formula = TS ~ trend)
   return(fit)
+}
+
+#ARIMA diagnostics
+#Create a data frame with one column a variable of interest and the second being that variable lagged n times.
+#'@export
+create_lag <- function(df = read_data(), var = "Met-minutes", lag_ = 1){
+  df <- data.frame(read_data()[,var], "lag" =  rbind(rep(NA, lag_), read_data()[1:22-lag_,var]), stringsAsFactors = FALSE)
+  df[,1] <- as.numeric(df[,1])
+  df[,2] <- as.numeric(df[,2])
+  colnames(df) <- c(var, "lag")
+  return(df)
 }
