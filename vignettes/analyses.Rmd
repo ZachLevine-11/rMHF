@@ -1,0 +1,64 @@
+---
+title: "COVID-19 Exercise Analyses"
+author: "My Heart Fitness"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Vignette Title}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+
+#### Basic questions:
+* Seek the patients' perspectives around the importance of exercising during pandemic.
+* Would also like to know whether they perceive their physicians to prioritize exercise and lifestyle behaviours any less importantly than they otherwise might, during this pandemic.
+
+#### Variables and interactions of interest:
+* MET minutes
+* Volume of visits
+* Attendance
+* % Attendance and Met-minute interactions (because it is a sign of compliance)
+* Mean age and % females.
+
+
+#### Time periods:  Jan 1 until April 31, 2019 and Jan 1 until April 31, 2020
+
+#### Two main tasks
+1. Use a time series analysis. We should do some p values using time series comparing pre-post trends around the week of march 16th within each year.
+1. We also want to compare time trends in 2020 vs 2019 statistically.
+
+## Part one: Investigating Pre/post COVID restrictions 2020:
+
+1. We'll start by using `read_data()` to create the dataset we're going to use and properly format/type the attributes. This is more an exercise in data wrangling than anything else.
+1. Now, we have our dataset, we should pick a variable of interest; say *MET-minutes*, though we're interested in all the variables and interactions listed above.
+We need to ascertain the model we're going to be using, and learn about the data and its features. We beging with a few questions related to time-series modelling.
+
+#### Initial questions.
+1. Is there a trend in 2019 and 2020, for whichever varibale we're considering (*Met-minutes* in this case)?
+1. Is there seasonality within each year? We're really asking here if there's a repeating pattern of highs and lows relating to time on a calendar. We note that recorded once per week.
+1. Are there outliers for our variable?
+1. Is there a long-run period unrelated to seasonality factors?
+1. Is the variance constant over time? Or is it non-constant.
+1. Are there any abrupt changes to either series values or variance?
+
+Let's start with a time series plot. We'll plot the variable against time. For *MET-minutes*, our plots for 2019 and 2020 are below.
+
+```{r}
+# Met-minutes in 2019
+plot(ts(RMHF::read_data()[1:11,"Met-minutes"]))
+#  Met minutes in 2020
+plot(ts(RMHF::read_data()[2:22,"Met-minutes"]))
+```
+
+We start by noting that there is no consistent trend in either time series over the entire time span. The series appear to wander up and down. There also don't appear to be any obvious outliers in either time series, and it's hard to judge whether the variance is constant or not. There might be some seasonal component in either time series as well.
+
+
+
