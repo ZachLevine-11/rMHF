@@ -28,53 +28,6 @@ read_data <- function(fn = "2020Data.csv"){
   return(df)
 }
 
-#' @import lubridate
-#Run an additive time series analysis on read_data() specifically around the three weeks containing March 16.
-#Change the column selector to be whatever column is in question.
-#'@export
-mhf_ts <- function(data = read_data(), var = "Met-minutes", single_df = FALSE){
-    ts2019 <- ts(data[1:11, var], frequency = 1, start = c(5), end = c(18))
-    ts2020 <- ts(data[12:nrow(data), var], frequency = 1, start = c(6), end = c(19))
-  packagedData <- list("2019" = ts2019, "2020" = ts2020)
-  if (single_df){
-    return(data.frame(packagedData))
-  }
-  else{
-    return(packagedData)
-  }
-}
-
-#Identify the trend in a time series by moving average.
-#Year selects the year in question.
-#tslist should be a list of two time series, most usefully the result of timeSeries().
-#' @import forecast
-#' @export
-ma_ts <- function(year, tsList = mhf_ts()) {
-  TS <- tsList[[year]]
-  ma_ts <- forecast::ma(TS, order = 2)
-  return(ma_ts)
-}
-
-#Grab the entries around the week of March 16 for a year (2019, 2020) in question for a time series.
-#'@export
-march16_ts <- function(TS){
-  #Return data matching the indices for the three weeks surrounding and including march 16.
-  TS <- TS[5:7]
-  return(TS)
-}
-
-#' @import forecast
-#Identify the trend in a time series by least squares regresion using a simple linear model.
-#Year selects the year in question.
-#Variable selects the variable
-#tslist should be a list of two time series, most usefully the result of timeSeries().
-#'@export
-lm_ts <- function(year, variable = "Met-minutes", tsList = mhf_ts(var = variable)){
-  TS <- tsList[[year]]
-  fit <- forecast::tslm(formula = TS ~ trend)
-  return(fit)
-}
-
 #ARIMA diagnostics
 #Create a data frame with one column a variable of interest and the second being that variable lagged n times.
 #'@export
