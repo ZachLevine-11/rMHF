@@ -44,7 +44,10 @@ plot(ts(RMHF::read_data()[2:22,"Met-minutes"]))
 
 _We also note that there is no consistent trend in either time series over the entire time span. The series appear to wander up and down. There also don't appear to be any obvious outliers in either time series._
 
-First, let's use an augmented Dickey-Fuller test to determine whether a time series is stationary. Technically, we're going to test the null hypothesis that the series is non-stationary.
+First, let's use two tests of stationarity (Augmented Dickey-Fuller, KPSS) to determine whether the time series is stationary.
+
+**ADF testing**
+Let's start with the Augmented-Dickey-Fuller test. Here, the null hypothesis is that the series is non-stationary, that is, the existence of a unit root. The alternative hypothesis is that the series is stationary.
 
 ```{r}
 df <- RMHF::read_data()
@@ -58,7 +61,7 @@ tsdf2020mets <- ts(df2020mets)
 tseries::adf.test(tsdf2020mets, alternative = "stationary")
 ```
 
-Alright, so we can't reject the null hypothesis that the series is non-stationary in either 2019 or 2020. This is important for us. Given that we have non-stationary data, we will need to “difference” the data until we obtain a stationary time series. We'll start with the “first-order"" difference. What we're doing here is that is removing the previous Y _met-minutes_ values only once.  For each time point in our data, this gives you the change in value from the previous time point. So let's do this in parallel for 2019 and 2020.
+Alright, so the Augmented Dickey-Fuller test tells us we can't reject the null hypothesis that the series is non-stationary in either 2019 or 2020. This is important for us. Given that we have non-stationary data, we will need to “difference” the data until we obtain a stationary time series. We'll start with the “first-order"" difference. What we're doing here is that is removing the previous Y _met-minutes_ values only once.  For each time point in our data, this gives you the change in value from the previous time point. So let's do this in parallel for 2019 and 2020.
 
 ```{r}
 # Differencing 2019 data.
@@ -93,14 +96,71 @@ tseries::adf.test(tsdf2019mets_diff3, alternative = "stationary")
 tsdf2020mets_diff3 <- diff(tsdf2020mets, differences=3)
 tseries::adf.test(tsdf2020mets_diff3, alternative = "stationary")
 ```
-
 It looks like our 2019 time series is stationary now. We can reject the null hypothesis that it isn't stationary and conclude that it is now. Let's difference one more time to make our 2020 data stationary.
 ```{r}
 # Fourth differencing 2020 data.
 tsdf2020mets_diff4 <- diff(tsdf2020mets, differences=4)
 tseries::adf.test(tsdf2020mets_diff4, alternative = "stationary")
 ```
-Alright, now both time series objects are stationary. Let's take a look at the graphs of both now. Note that the differencing consumed some data points at the begining and end of each time series.
+
+**KPSS test**
+
+Alright, but what about the KPSS test? Let's give it a try on our original MET-minute data. Recaall that the KPSS test is a different hypothesis test than the ADF one used above. Here, the null is that the data is stationary. For this test, we'd like not to reject H0, so we'd like the p value to be greater than 0.05.
+
+```{r}
+#2019
+tseries::kpss.test(tsdf2020mets)
+#2020
+tseries::kpss.test(tsdf2020mets)
+```
+
+Alright, so both p values were less than our significance level, so we have to reject H0 and conclude that the 
+data is nonstationary. Let's try first differencing again, similar to the above.
+
+```{r}
+# Differencing 2019 data.
+tseries::kpss.test(tsdf2019mets_diff1)
+
+# Differencing 2020 data.
+tseries::kpss.test(tsdf2020mets_diff1)
+```
+
+Second differencing now.
+
+```{r}
+# Second differencing 2019 data.
+tseries::kpss.test(tsdf2019mets_diff2)
+
+# Second differencing 2020 data.
+tseries::kpss.test(tsdf2020mets_diff2)
+```
+
+Third differencing now.
+
+```{r}
+# Third differencing 2019 data.
+tseries::kpss.test(tsdf2019mets_diff3)
+
+# Third differencing 2020 data.
+tseries::kpss.test(tsdf2020mets_diff3)
+```
+
+Trying to make 2020 data stationary.
+
+```{r}
+# Testing fourth differenced 2020 data.
+tseries::kpss.test(diff(tsdf2020mets, differences = 4))
+# Testing fifth differenced 2020 data.
+tseries::kpss.test(diff(tsdf2020mets, differences = 5))
+
+```
+
+**Synthesizing the ADF and KPSS tests**
+
+The KPSS test showed a p value for 2019 *D = 3* very close to the edge of the rejection zone. This agrees with the ADF test, so we can conclude that it is reasonable. The KPSS test doesn't indicate stationarity for the 2020 data even with d = 4 or 5. But the adf test did, so let's try D = 4 for the 2020 data.
+
+Let's take a look at our data.
+
 ```{r}
 # Third order differenced 2019 data.
 plot(tsdf2019mets_diff3)
@@ -108,81 +168,85 @@ plot(tsdf2019mets_diff3)
 plot(tsdf2020mets_diff4)
 ```
 
-The d values for 2019 and 2020 arima models are therefore 3 and 4, respectively. Now that we have a stationary time series for each year, we should select the appropriate ARIMA model. This means finding the most appropriate values for p and q in the ARIMA(p,d,q) model.
+To check seasonality, let's extract the dominant frequency from each time series object.
 
-As a quick refresher, p refers to how many previous (lagged) *Y* values are accounted for, and q refers to how many previous (lagged) *error* values are accounted for each time point in our model. We'll use two tools here:
+```{r}
+#Extract frequency from 2019 data.
+forecast::findfrequency(tsdf2019mets_diff3)
+#Extract frequency from 2020 data.
+forecast::findfrequency(tsdf2020mets_diff4)
+```
+
+Alright, so the dominant frequency in each dataset appears to be three. Let's fit some time series objects.
+```{r}
+#Fit the appropraite time series for 2019 data.
+ts2019_stat <-  ts(tsdf2019mets_diff3[1:8], frequency = 3)
+#Fit the apropriate time series for 2020 data.
+ts2020_stat <- ts(tsdf2020mets_diff4[1:8], frequency = 3)
+```
+Now that we have a stationary time series for each year, we should select the appropriate ARIMA model. This means finding the most appropriate values for P, p, Q and q in the ARIMA(p,d,q)X(P,D,Q) model, as we already solved for D.
+
+As a quick refresher, p refers to how many previous (lagged) *Y* values are accounted for at each point, and q refers to how many previous (lagged) *error* values are accounted for each time point in our model. We'll use two tools here:
 1. Correlogram
-1. Correlogram partial correlogram
+1. Partial correlogram
 
 What's a correlogram? It's a plot of the correlation of each MET-minute variable at time t with that at time t-k. A partial correlogram the same except for the fact that it removes the effect of shorter autocorrelation lags when calculating the correlation at longer lags. Techhnically speaking, the partial correlation at lag k is the autocorrelation between Yt and Yt-k that is NOT accounted for by the autocorrelations from the 1st to the (k-1)st lags.
 
 Let's explore the correlogram and partial correlograms for the 2019 and 2020 data, respectively.
-```{r}
-# Correlogram for stationary (third order) differenced 2019 data.
-acf(as.numeric(tsdf2019mets_diff3))
-# Partial correlogram for stationary (third order) differenced 2019 data.
-pacf(as.numeric(tsdf2019mets_diff3))
+```{r fig.height = 6, fig.width = 6}
+acf(as.numeric(ts2019_stat))
+pacf(as.numeric(ts2019_stat))
 
-
-# Correlogram for stationary (fourth order) differenced 2020 data.
-acf(tsdf2020mets_diff4)
-# Partial correlogram for stationary (third order) differenced 2020 data.
-pacf(tsdf2020mets_diff4)
+acf(as.numeric(ts2020_stat))
+pacf(as.numeric(ts2020_stat))
 
 ```
 
-Alright, there were some significant autocorrelations at the begining of each time series, so let's extract the dominant frequency from each time series objet.
-```{r}
-#Adpot constant naming conventions.
-stat2019 <- tsdf2019mets_diff3
-stat2020 <- tsdf2020mets_diff4
-#Fast fourier transform for 2019 data.
-forecast::findfrequency(stat2019)
-#Fast fourier transform for 2020.
-forecast::findfrequency(stat2020)
-```
-Alright, so the dominant frequency in each dataset appears to be three. Let's fit some time series objects.
-```{r}
-#Fit the appropraite time series for 2019 data.
-ts2019 <-  ts(stat2019[1:8], frequency = 3)
-#Fit the apropriate time series for 2020 data.
-ts2020 <- ts(stat2020[1:7], frequency = 3)
-```
-Now we can use local regression modelling to decompose each time series object. Lets do that and explore each object.
-```{r}
-#Decompose 2019 data.
-stl_ts2019 <-  stl(ts2019, s.window = "periodic")
-plot(stl_ts2019)
+The largest statistically significant lag values of the correlogram gives the possible seasonal *q* values for the ARIMA model. In addition, the largest statistically significant lag of the partial correlogram gives the seasonal *p* value for an ARIMA model. It appears we want P,Q = 0,0 for 2019 and 2020.
 
-#Decompose 2020 data.
-stl_ts2020 <-  stl(ts2020, s.window = "periodic")
-plot(stl_ts2020)
+Lets grab the nonseasonal components of the data by seasonal decomposition.
 
-```
-Now we can use seasonal adjustent to remove the seasonal component from each time series. Lets examine each as well.
-```{r}
-#Adjust 2019 data.
-saeasadj2019 <-  forecast::seasadj(stl_ts2019)
-plot(saeasadj2019)
-
-#Adjust 2020 data.
-saeasadj2020 <-  forecast::seasadj(stl_ts2020)
-plot(saeasadj2020)
-```
-
-Now we explore at the autocorrelations and partial autocorrelations plots, we should see no patterns.
-```{r}
+```{r fig.height= 6, fig.width = 6}
 #2019
-acf(as.numeric(saeasadj2019))
+seasadj2019 <- forecast::seasadj(stl(ts2019_stat, s.window = "periodic"))
+acf(as.numeric(seasadj2019))
+pacf(as.numeric(seasadj2019))
 
 #2020
-acf(as.numeric(saeasadj2020))
+seasadj2020 <- forecast::seasadj(stl(ts2020_stat, s.window = "periodic"))
+acf(as.numeric(seasadj2020))
+pacf(as.numeric(seasadj2020))
 ```
-Lags don't appear to be correlated to oneanother, which is good.
-The maximum significant lag values of the correlogram gives the possible q values for the ARIMA model. For instance, if our maximum value is n, then an ARMA(0,n) model is possible.
 
-The maximum significant lag values of the partial correlogram gives  the p value for an ARIMA model. For instance, if our maximum value is n, then an an ARMA(n,0) model would also be possible.
+So we're left with
+1. 2019: (p,d,q)x(p,D,Q) = (0,0,0)(0,3,0)
+1. 2020: (p,d,q)x(p,D,Q) = (1,0,2)(0,4,0)
 
+Let's fit the models.
 
+```{r}
+#Fit both ARIMA models.
+arima2019 <- forecast::Arima(tsdf2019mets, order =  c(0,0,0), seasonal = c(0, 3, 0))
+arima2020 <- forecast::Arima(tsdf2020mets, order =  c(1,0,2), seasonal = c(0,4,0))
+```
 
+Time to check our work.
+
+```{r fig.width = 5}
+#Check 2019
+forecast::checkresiduals(arima2019)
+forecast::checkresiduals(forecast::auto.arima(tsdf2019mets))
+
+#Check 2020
+forecast::checkresiduals(arima2020)
+forecast::checkresiduals(forecast::auto.arima(tsdf2020mets))
+
+```
+
+```{r}
+coef(arima2019)
+coef(arima2020)
+```
+
+The Ljung-Box statistic tests the null hypothesis that the residuals are distributed independently _(H0)_, vs the _(Ha)_ hypothesis that the residuals exhbit some form of autocorrelation (the model shows lack of fit). In other words, if the p value is greater than 0.05 then the residuals are independent. We want p > 0.05.
 
