@@ -35,7 +35,7 @@ Use a time series analysis. We should do some p values using time series compari
 We'll start by using `read_data()` to create the dataset we're going to use and properly format/type the attributes. This is more an exercise in data wrangling than anything else.
 We need to ascertain the model we're going to be using, and learn about the data and its features. The data runs from Jan 1 2019 until April 31 2019 and Jan 1 2019 until April 31, 2020. We begin by asking if the time series for 2019 and 2020 are stationary. Let's start with a visual inspection. We'll plot the variable against time. For *MET-minutes*, our plots for 2019 and 2020 are below.
 
-```{r}
+```{r fig.width = 5, fig.height = 5}
 # Met-minutes in 2019
 plot(ts(RMHF::read_data()[1:11,"Met-minutes"]))
 #  Met minutes in 2020
@@ -44,193 +44,111 @@ plot(ts(RMHF::read_data()[2:22,"Met-minutes"]))
 
 _We also note that there is no consistent trend in either time series over the entire time span. The series appear to wander up and down. There also don't appear to be any obvious outliers in either time series._
 
-First, let's use two tests of stationarity (Augmented Dickey-Fuller, KPSS) to determine whether the time series is stationary.
+Let's create some more specific data:
 
-**ADF testing**
-Let's start with the Augmented-Dickey-Fuller test. Here, the null hypothesis is that the series is non-stationary, that is, the existence of a unit root. The alternative hypothesis is that the series is stationary.
+```{r}
+df <- RMHF::read_data()
+df2019mets <- df[1:11, "Met-minutes"]
+tsdf2019mets <- ts(df2019mets)
+# Is the 2020 time-series stationary?
+df2020mets <- df[11:22, "Met-minutes"]
+tsdf2020mets <- ts(df2020mets)
+```
+
+First, let's use two tests of stationarity (Augmented Dickey-Fuller, KPSS) to determine whether the time series is stationary. Let's start with the Augmented-Dickey-Fuller test. Here, the null hypothesis is that the series is non-stationary, that is, the existence of a unit root. The alternative hypothesis is that the series is stationary. We'd like a p value less than 0.05 to reject the null.
 
 ```{r}
 df <- RMHF::read_data()
 # Is the 2019 time-series stationary?
-df2019mets <- df[1:11, "Met-minutes"]
-tsdf2019mets <- ts(df2019mets)
 tseries::adf.test(tsdf2019mets, alternative = "stationary")
 # Is the 2020 time-series stationary?
-df2020mets <- df[11:22, "Met-minutes"]
-tsdf2020mets <- ts(df2020mets)
 tseries::adf.test(tsdf2020mets, alternative = "stationary")
 ```
 
 Alright, so the Augmented Dickey-Fuller test tells us we can't reject the null hypothesis that the series is non-stationary in either 2019 or 2020. This is important for us. Given that we have non-stationary data, we will need to “difference” the data until we obtain a stationary time series. We'll start with the “first-order"" difference. What we're doing here is that is removing the previous Y _met-minutes_ values only once.  For each time point in our data, this gives you the change in value from the previous time point. So let's do this in parallel for 2019 and 2020.
 
 ```{r}
-# Differencing 2019 data.
-tsdf2019mets_diff1<- diff(tsdf2019mets, differences=1)
+# Differencing 2019 data and comparing the result.
+arima(tsdf2019mets, order = c(0,0,0))
+tsdf2019mets_diff1<- diff(tsdf2019mets, differences = 1)
 tseries::adf.test(tsdf2019mets_diff1, alternative = "stationary")
+arima(tsdf2019mets, order = c(0,1,0))
 
-# Differencing 2020 data.
-tsdf2020mets_diff1 <- diff(tsdf2020mets, differences=1)
+# Differencing 2020 data and comparing the result.
+arima(tsdf2020mets, order = c(0,0,0))
+tsdf2020mets_diff1 <- diff(tsdf2020mets, differences = 1)
 tseries::adf.test(tsdf2020mets_diff1, alternative = "stationary")
+arima(tsdf2020mets, order = c(0,1,0))
 ```
 
-Differencing the first time didn't make either time series stationary. Let's try second order differencing.
+*Understanding our results*
+Differencing the first time didn't make either time series stationary. But the standard deviation increased in both cases which indicates overdifferencing.In addition, the kpss test shows that both series were stationary from the get-go.
 
 ```{r}
-# Second differencing 2019 data.
-tsdf2019mets_diff2<- diff(tsdf2019mets, differences=2)
-tseries::adf.test(tsdf2019mets_diff2, alternative = "stationary")
-
-# Second differencing 2020 data.
-tsdf2020mets_diff2 <- diff(tsdf2020mets, differences=2)
-tseries::adf.test(tsdf2020mets_diff2, alternative = "stationary")
-```
-
-Differencing the second time didn't make either time series stationary. Let's try third order differencing.
-
-```{r}
-# Third differencing 2019 data.
-tsdf2019mets_diff3 <- diff(tsdf2019mets, differences=3)
-tseries::adf.test(tsdf2019mets_diff3, alternative = "stationary")
-
-# Third differencing 2020 data.
-tsdf2020mets_diff3 <- diff(tsdf2020mets, differences=3)
-tseries::adf.test(tsdf2020mets_diff3, alternative = "stationary")
-```
-It looks like our 2019 time series is stationary now. We can reject the null hypothesis that it isn't stationary and conclude that it is now. Let's difference one more time to make our 2020 data stationary.
-```{r}
-# Fourth differencing 2020 data.
-tsdf2020mets_diff4 <- diff(tsdf2020mets, differences=4)
-tseries::adf.test(tsdf2020mets_diff4, alternative = "stationary")
-```
-
-**KPSS test**
-
-Alright, but what about the KPSS test? Let's give it a try on our original MET-minute data. Recaall that the KPSS test is a different hypothesis test than the ADF one used above. Here, the null is that the data is stationary. For this test, we'd like not to reject H0, so we'd like the p value to be greater than 0.05.
-
-```{r}
-#2019
-tseries::kpss.test(tsdf2020mets)
-#2020
+tseries::kpss.test(tsdf2019mets)
 tseries::kpss.test(tsdf2020mets)
 ```
 
-Alright, so both p values were less than our significance level, so we have to reject H0 and conclude that the 
-data is nonstationary. Let's try first differencing again, similar to the above.
+Because differencing appears to worsen the model fit in the best case, and in the worst case we don't need it, let's assume the time series are stationary. auto.arima in R uses the results from the kpss test over those from the adf test by default anyway. So let's assume they are.
 
-```{r}
-# Differencing 2019 data.
-tseries::kpss.test(tsdf2019mets_diff1)
+Now we should check if the time series are seasonal. Let's check for patterns or regularity in the autocorrelograms and partialcorrelograms. If there is a pattern are, we should extract its frequency from both time series. As a quick refresher, p refers to how many previous (lagged) *Y* values are accounted for at each point, and q refers to how many previous (lagged) *error* values are accounted for each time point in our model.
 
-# Differencing 2020 data.
-tseries::kpss.test(tsdf2020mets_diff1)
-```
-
-Second differencing now.
-
-```{r}
-# Second differencing 2019 data.
-tseries::kpss.test(tsdf2019mets_diff2)
-
-# Second differencing 2020 data.
-tseries::kpss.test(tsdf2020mets_diff2)
-```
-
-Third differencing now.
-
-```{r}
-# Third differencing 2019 data.
-tseries::kpss.test(tsdf2019mets_diff3)
-
-# Third differencing 2020 data.
-tseries::kpss.test(tsdf2020mets_diff3)
-```
-
-Trying to make 2020 data stationary.
-
-```{r}
-# Testing fourth differenced 2020 data.
-tseries::kpss.test(diff(tsdf2020mets, differences = 4))
-# Testing fifth differenced 2020 data.
-tseries::kpss.test(diff(tsdf2020mets, differences = 5))
-
-```
-
-**Synthesizing the ADF and KPSS tests**
-
-The KPSS test showed a p value for 2019 *D = 3* very close to the edge of the rejection zone. This agrees with the ADF test, so we can conclude that it is reasonable. The KPSS test doesn't indicate stationarity for the 2020 data even with d = 4 or 5. But the adf test did, so let's try D = 4 for the 2020 data.
-
-Let's take a look at our data.
-
-```{r}
-# Third order differenced 2019 data.
-plot(tsdf2019mets_diff3)
-# Fourth order differenced 2020 data.
-plot(tsdf2020mets_diff4)
-```
-
-To check seasonality, let's extract the dominant frequency from each time series object.
-
-```{r}
-#Extract frequency from 2019 data.
-forecast::findfrequency(tsdf2019mets_diff3)
-#Extract frequency from 2020 data.
-forecast::findfrequency(tsdf2020mets_diff4)
-```
-
-Alright, so the dominant frequency in each dataset appears to be three. Let's fit some time series objects.
-```{r}
-#Fit the appropraite time series for 2019 data.
-ts2019_stat <-  ts(tsdf2019mets_diff3[1:8], frequency = 3)
-#Fit the apropriate time series for 2020 data.
-ts2020_stat <- ts(tsdf2020mets_diff4[1:8], frequency = 3)
-```
-Now that we have a stationary time series for each year, we should select the appropriate ARIMA model. This means finding the most appropriate values for P, p, Q and q in the ARIMA(p,d,q)X(P,D,Q) model, as we already solved for D.
-
-As a quick refresher, p refers to how many previous (lagged) *Y* values are accounted for at each point, and q refers to how many previous (lagged) *error* values are accounted for each time point in our model. We'll use two tools here:
-1. Correlogram
-1. Partial correlogram
-
-What's a correlogram? It's a plot of the correlation of each MET-minute variable at time t with that at time t-k. A partial correlogram the same except for the fact that it removes the effect of shorter autocorrelation lags when calculating the correlation at longer lags. Techhnically speaking, the partial correlation at lag k is the autocorrelation between Yt and Yt-k that is NOT accounted for by the autocorrelations from the 1st to the (k-1)st lags.
+A correlogram plot of the correlation of each MET-minute variable at time t with that at time t-k. A partial correlogram the same except for the fact that it removes the effect of shorter autocorrelation lags when calculating the correlation at longer lags. Techhnically speaking, the partial correlation at lag k is the autocorrelation between Yt and Yt-k that is NOT accounted for by the autocorrelations from the 1st to the (k-1)st lags.
 
 Let's explore the correlogram and partial correlograms for the 2019 and 2020 data, respectively.
 ```{r fig.height = 6, fig.width = 6}
-acf(as.numeric(ts2019_stat))
-pacf(as.numeric(ts2019_stat))
+acf(as.numeric(tsdf2019mets))
+pacf(as.numeric(tsdf2019mets))
 
-acf(as.numeric(ts2020_stat))
-pacf(as.numeric(ts2020_stat))
+acf(as.numeric(tsdf2020mets))
+pacf(as.numeric(tsdf2020mets))
 
 ```
 
-The largest statistically significant lag values of the correlogram gives the possible seasonal *q* values for the ARIMA model. In addition, the largest statistically significant lag of the partial correlogram gives the seasonal *p* value for an ARIMA model. It appears we want P,Q = 0,0 for 2019 and 2020.
+The 0th lag will always be significant but this tells us nothing. What we do see is a lack of a pattern in both the acf and pacf for both plots. This points to a lack of seasonality. Indeed, if we try and extract the frequency from both objects. we obtain one, indicating no seasonality.
 
-Lets grab the nonseasonal components of the data by seasonal decomposition.
+```{r}
+#Extract frequency from 2019 data.
+forecast::findfrequency(tsdf2019mets)
+#Extract frequency from 2020 data.
+forecast::findfrequency(tsdf2020mets)
+```
+This agrees with *"Wiener–Khinchin theorem, also known as the Wiener–Khintchine theorem and sometimes as the Wiener–Khinchin–Einstein theorem or the Khinchin–Kolmogorov theorem, [which] states that the autocorrelation function of a wide-sense-stationary random process has a spectral decomposition given by the power spectrum of that process"* (Wikipedia).
 
-```{r fig.height= 6, fig.width = 6}
-#2019
-seasadj2019 <- forecast::seasadj(stl(ts2019_stat, s.window = "periodic"))
-acf(as.numeric(seasadj2019))
-pacf(as.numeric(seasadj2019))
+But what if we were to decompose each year by seasonal periods of 2, 3, 4, or 5 weeks (the maximum for a series of 11 points to be periodic)? Seastest does exactly this by using an F test on seasonal dummies and checking for statistically significant seasonality coefficients (betas).
 
-#2020
-seasadj2020 <- forecast::seasadj(stl(ts2020_stat, s.window = "periodic"))
-acf(as.numeric(seasadj2020))
-pacf(as.numeric(seasadj2020))
+```{r}
+testSeasonality <- function(listobj){
+  possibleFreqs <- 2:5
+  for (thefreq in possibleFreqs){
+    print(paste0("Is seasonal at a frequency of: ", thefreq, " ?" ))
+    print(seastests::isSeasonal(ts(listobj), freq = thefreq, test = "seasdum"))
+  }
+}
+#Try 2019.
+testSeasonality(df2019mets)
+#Try 2020.
+testSeasonality(df2020mets)
 ```
 
-So we're left with
-1. 2019: (p,d,q)x(p,D,Q) = (0,0,0)(0,3,0)
-1. 2020: (p,d,q)x(p,D,Q) = (1,0,2)(0,4,0)
+We've now concluded that neither time series is seasonal, and that both are stationary (to the extent that differencing worsens the model fit, which auto.arima() also agrees with). Now that we have a stationary time series for each year, we should fit the appropriate nonseasonal ARIMA model. This means finding the most appropriate values for *p* and *q*, as *d = 0*, for both models.
+
+The largest statistically significant lag values of the correlogram gives the possible *q* values for the ARIMA model. In addition, the largest statistically significant lag of the partial correlogram gives the *p* value for an ARIMA model. Looking back at our ACF and PACFs above, we note the folloiwng possible models for 2019 and 2020, respectively.
+
+*Possible ARIMA models*
+1. 2019: (p,d,q) = (0,0,0), 
+1. 2020: (p,d,q) = (0,0,0), 
 
 Let's fit the models.
 
 ```{r}
 #Fit both ARIMA models.
-arima2019 <- forecast::Arima(tsdf2019mets, order =  c(0,0,0), seasonal = c(0, 3, 0))
-arima2020 <- forecast::Arima(tsdf2020mets, order =  c(1,0,2), seasonal = c(0,4,0))
+arima2019 <- forecast::Arima(tsdf2019mets)
+arima2020 <- forecast::Arima(tsdf2020mets)
 ```
 
-Time to check our work.
+Time to check our work. The Ljung-Box statistic tests the null hypothesis that the residuals are distributed independently _(H0)_, vs the _(Ha)_ hypothesis that the residuals exhbit some form of autocorrelation (the model shows lack of fit). In other words, if the p value is greater than 0.05 then the residuals are independent. We want p > 0.05.
+
 
 ```{r fig.width = 5}
 #Check 2019
@@ -243,10 +161,5 @@ forecast::checkresiduals(forecast::auto.arima(tsdf2020mets))
 
 ```
 
-```{r}
-coef(arima2019)
-coef(arima2020)
-```
-
-The Ljung-Box statistic tests the null hypothesis that the residuals are distributed independently _(H0)_, vs the _(Ha)_ hypothesis that the residuals exhbit some form of autocorrelation (the model shows lack of fit). In other words, if the p value is greater than 0.05 then the residuals are independent. We want p > 0.05.
+Auto arima agrees with this result. But how do we interpret a (0,0,0 model)?
 
