@@ -161,5 +161,27 @@ forecast::checkresiduals(forecast::auto.arima(tsdf2020mets))
 
 ```
 
-Auto arima agrees with this result. But how do we interpret a (0,0,0 model)?
+Auto arima agrees with this result. But this wasn't our main focus. It's time for some intervention analysis on the 2020 data. If we fit an ARIMA model to the 2020 [Jan 1 - March11] data automatically, we yield the following.
+
+Automatic model fit.
+
+```{r}
+autofit <- forecast::auto.arima(ts(RMHF::read_data()[11:16, "Met-minutes"]))
+```
+
+Manual model fit
+
+```{r}
+tseries::kpss.test(ts(RMHF::read_data()[11:16, "Met-minutes"]))
+manualfit <- forecast::Arima(ts(RMHF::read_data()[11:16, "Met-minutes"]), order = c(1,1,0))
+```
+
+Which is better?
+
+```{r}
+forecast::checkresiduals(autofit)
+forecast::checkresiduals(manualfit)
+manualfit
+```
+
 

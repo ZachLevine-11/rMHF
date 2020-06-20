@@ -28,7 +28,7 @@ read_data <- function(fn = "2020Data.csv"){
   return(df)
 }
 
-#ARIMA diagnostics
+#ARIMA diagnostics, useful for when we want to lag something that's not a time series.
 #Create a data frame with one column a variable of interest and the second being that variable lagged n times.
 #'@export
 create_lag <- function(df = read_data(), var = "Met-minutes", lag_ = 1){
