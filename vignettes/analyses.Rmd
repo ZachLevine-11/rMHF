@@ -39,6 +39,8 @@ We're going to be folliwng the Box-Jenkins method for fitting autoregressive int
 
 We want to compare pre-post trends around the week of march 16th within each year using p values. We also want to compare time trends in 2020 vs 2019 statistically.
 
+We also switch between piecewise regression (in comparing time trends) and dynamic regresion (structural change models) to account for the fact that the datapoints in 2019 and 2020 are not sequentiallyl linked in time, but weeks before and after the invervention are.
+
 # Comparing 2019 vs 2020 time trends
 
 ###Met-minutes
@@ -173,14 +175,14 @@ df$year <- c(rep(0, 11), rep(1, 11))
 ```
 
 **Methodology**
-What we're going to do here is include an interaction term between year (2019, 2020) and time, whose coefficient (trend) we want to compare. Since we think that time might have a different effect for 2019 and 2020, we include an interaction term between year and each time(weeks). Then, we fit  a regression model to the data. The coefficient for weeks will is the coefficient for weeks for the reference group (2019) only. The interaction term between year and weeks represents the difference in the coefficients between 2019 and 2020. Lastly, to obtain the coefficient for 2020 (the comparison group), all we need to to is add the coefficients for the predictor (weeks) on its own and week*year interaction. This will give us a p value, which is good. So let's fit the regression line. 
+What we're going to do here is include an interaction term between year (2019, 2020) and time, whose coefficient (trend) we want to compare. Since we think that time might have a different effect for 2019 and 2020, we include an interaction term between year and each time(weeks). Then, we fit  a regression model to the data. The coefficient for weeks is the coefficient for weeks for the reference group (2019) only. The interaction term between year and weeks represents the difference in the coefficients between 2019 and 2020. Lastly, to obtain the coefficient for 2020 (the comparison group), all we need to to is add the coefficients for the predictor (weeks) on its own and week*year interaction. This will give us a p value, which is good. So let's fit the regression line. 
 
 ```{r}
 #Fit the regression.
 fit <- lm(mets ~ weeks + weeks*year, data  = df)
 ```
 
-Let's check the assumptions of our model using a few key diagnostic plot.
+Let's check the assumptions of our model using a few diagnostic plots.
 
 ```{r}
 forecast::checkresiduals(fit)
@@ -222,7 +224,7 @@ If we fit an ARIMA model to the 2020 data automatically, we yield the following 
 autofit <- forecast::auto.arima(ts(RMHF::read_data()[12:22, "Met-minutes"]))
 ```
 
-This tells us the ideal ARIMA model is a white noise model. Let's then another ARIMA model incuding a regressor that codes for the intervention.
+This tells us the ideal ARIMA model is a white noise model. Let's then fit another ARIMA model incuding a regressor that codes for the intervention.
 
 ```{r}
 intervention <- c(rep(0, 6), rep(1, 5))
@@ -247,7 +249,7 @@ autofit <- forecast::auto.arima(ts(RMHF::read_data()[12:22, "Prescheduled appoin
 forecast::checkresiduals(autofit)
 ```
 
-This tells us the ideal ARIMA model is a white noise model. Let's then another ARIMA model incuding a regressor that codes for the intervention.
+This tells us the ideal ARIMA model is a white noise model. Let's then fit another ARIMA model incuding a regressor that codes for the intervention.
 
 ```{r}
 intervention <- c(rep(0, 6), rep(1, 5))
@@ -271,7 +273,7 @@ autofit <- forecast::auto.arima(ts(RMHF::read_data()[12:22, "% of patients who w
 forecast::checkresiduals(autofit)
 ```
 
-This tells us the ideal ARIMA model is a white noise model. Let's then another ARIMA model incuding a regressor that codes for the intervention.
+This tells us the ideal ARIMA model is a white noise model. Let's then fit another ARIMA model incuding a regressor that codes for the intervention.
 
 ```{r}
 intervention <- c(rep(0, 6), rep(1, 5))
@@ -284,11 +286,25 @@ Now, if we use the likelihood ratio test of nested models, we can get the p valu
 lmtest::lrtest(fit_include_intervention, autofit)
 ```
 
-In this case, the larger model which also regresses on the presence of the intervention, is statistically significantly better for our data. Wohoo.
+In this case, the larger model which also regresses on the presence of the intervention, is statistically significantly better for our data. So the intervention had a significicant effect on program attendance. Wohoo.
 
-###Interactions
+###  Met-minute and % Attendance and interaction (because it is a sign of compliance)
 
-*% Attendance and Met-minute interactions (because it is a sign of compliance)*
+We want to see whether the intervention had a significant impact on the relationship between attendance and met-minute interactions.
 
-*Mean age and % females*
+What we're going to do here is include an interaction term between intervention and time, whose coefficient (trend) we want to compare. Since we think that the effect of attendance on met-minutes in 2020 might have a different effect before and after 2020, we include an interaction term between attendance and the intervention. Then we'll fit  a regression model to the data.
 
+The coefficient for % attendance is the coefficient for weeks before the intervention only. The interaction term between year and weeks represents the difference in the coefficients between before and after the intervention. This will give us a p value if we test the statistical significiance of the interaction effects which what we'd like. 
+
+```{r fig.height = 5, fig.width = 5}
+mets2020 <- RMHF::read_data()[12:22, "Met-minutes"]
+attendance2020 <- as.numeric(RMHF::read_data()[12:22,]$"% of patients who were no-shows")
+intervention <- c(rep(0, 6), rep(1, 5))
+fitdf <- data.frame(mets2020, attendance2020, intervention, stringsAsFactors = FALSE)
+colnames(fitdf) <- c("mets", "attendance", "intervention")
+fit <- lm(data = fitdf, formula = mets ~ attendance  + attendance*intervention)
+plot(fit)
+summary(fit)
+```
+
+#### Mean age and % females
