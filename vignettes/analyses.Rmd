@@ -27,6 +27,8 @@ knitr::opts_chunk$set(
 1. % Attendance and Met-minute interactions (because it is a sign of compliance)
 1. Mean age and % females.
 
+## Comparing 2019 vs 2020 met minute time trends
+
 We're going to be folliwng the Box-Jenkins method for fitting autoregressive integrated moving average (ARIMA) models. This is a systematic and formulaic method of selecting, fitting, checking, ARIMA time series models. Our process is the following:
 
 1. Model selection: Here, we ensure that our time series is stationary. We also need to identify seasonality, and seasonally difference if necessary. Then, we'll use plots of the autocorrelation (ACF) and partial autocorrelation (PACF) to decide if any autoregressive or moving average component should be used in the model, and to what (maximum) degree.
@@ -36,7 +38,6 @@ We're going to be folliwng the Box-Jenkins method for fitting autoregressive int
 
 We want to compare pre-post trends around the week of march 16th within each year using p values. We also want to compare time trends in 2020 vs 2019 statistically.
 
-## 2019 and 2020 MET-Minutes.
 We'll start by using `read_data()` to create the dataset we're going to use and properly format/type the attributes. This is more an exercise in data wrangling than anything else.
 We need to ascertain the model we're going to be using, and learn about the data and its features. The data runs from Jan 1 2019 until April 31 2019 and Jan 1 2019 until April 31, 2020. We begin by asking if the time series for 2019 and 2020 are stationary. Let's start with a visual inspection. We'll plot the variable against time. For *MET-minutes*, our plots for 2019 and 2020 are below.
 
@@ -133,36 +134,16 @@ testSeasonality(df2020mets)
 
 We've now concluded that neither time series is seasonal, and that both are stationary (to the extent that differencing worsens the model fit, which auto.arima() also agrees with). Now that we have a stationary time series for each year, we should fit the appropriate nonseasonal ARIMA model. This means finding the most appropriate values for *p* and *q*, as *d = 0*, for both models.
 
-The largest statistically significant lag values of the correlogram gives the possible *q* values for the ARIMA model. In addition, the largest statistically significant lag of the partial correlogram gives the *p* value for an ARIMA model. Looking back at our ACF and PACFs above, we note that our time series appears to fit best a *white noise* model.
+The largest statistically significant lag values of the correlogram gives the possible *q* values for the ARIMA model. In addition, the largest statistically significant lag of the partial correlogram gives the *p* value for an ARIMA model. Looking back at our ACF and PACFs above, we note that our time series appears to fit best a *white noise* model. There are no autoregressive or moving average terms required here. In other words, observations at each time point are statistically independent of oneanother. So we're left with ARIMA(0,0,0) models for both years, which _auto.arima_ agrees with.
 
-Model fitting:
+Checking and fitting ARIMA (0,0,0):
 
-```{r}
+```{r fig.width = 5}
 #Fit both ARIMA models.
 arima2019 <- forecast::Arima(tsdf2019mets)
 arima2020 <- forecast::Arima(tsdf2020mets)
 
-df2019 <- df[1:11, ]
-df2020 <- df[12:22, ]
-#Fix the column names of both objects so we can fit the regression models.
-colnames(df2019) <- c(colnames(df2019)[1:10], "mets")
-colnames(df2020) <- c(colnames(df2020)[1:10], "mets")
-#Properly type the met-minutes column of each dataset.
-df2019$mets <- as.numeric(df2019$mets)
-df2020$mets <- as.numeric(df2020$mets)
-#Add a week number column to both datasets to regress on time.
-df2019$weekNum <- 1:11
-df2020$weekNum <- 1:11
-#Fit the regression models!
-lm2019 <- lm(df2019, formula = mets ~ weekNum)
-lm2020 <- lm(df2020, formula =  mets ~ weekNum)
-```
 
-There are no autoregressive or moving average terms required here. We're left with a white noise model, telling us that observations at each time point are statistically independent of oneanother.
-
-Time to check our work. The Ljung-Box statistic tests the null hypothesis that the residuals are distributed independently _(H0)_, vs the _(Ha)_ hypothesis that the residuals exhbit some form of autocorrelation (the model shows lack of fit). In other words, if the p value is greater than 0.05 then the residuals are independent. We want p > 0.05.
-
-```{r fig.width = 5}
 #Check 2019 ARIMA.
 forecast::checkresiduals(arima2019)
 forecast::checkresiduals(forecast::auto.arima(tsdf2019mets))
@@ -172,18 +153,53 @@ forecast::checkresiduals(arima2020)
 forecast::checkresiduals(forecast::auto.arima(tsdf2020mets))
 ```
 
-These work!
+The Ljung-Box statistic tests the null hypothesis that the residuals are distributed independently _(H0)_, vs the _(Ha)_ hypothesis that the residuals exhbit some form of autocorrelation (the model shows lack of fit). In other words, if the p value is greater than 0.05 then the residuals are independent. We want p > 0.05, which we have in both cases. Still, because our data is white noise we're not going to be able to forecast using time-series methods. This makes our original plan for intervention analyses unachievable. What we can do is test whether the time trend differs between 2019 and 2020.
 
 ```{r}
-#Check 2019 linear regression.
-forecast::checkresiduals(lm2019)
-#Check 2020 linear regression.
-forecast::checkresiduals(lm2020)
+df <- RMHF::read_data()
+colnames(df) <- c(colnames(df)[1:10], "mets")
+df$mets <- as.numeric(df$mets)
+df$weeks <- c(1:11, 1:11)
+#Create a dummy variable for the year.
+df$year <- c(rep(0, 11), rep(1, 11)) 
 ```
 
-We don't want to reject the null in the Breusch-Godfrey test, as it's that there's no serial correlation in our data. In other words, we want p > 0.05 for this to work.
+*Methodology*
+What we're going to do here is include an interaction term between year (2019, 2020) and time, whose coefficient (trend) we want to compare. Since we think that time might have a different effect for 2019 and 2020, we include an interaction term between year and each time(weeks). Then, we fit  a regression model to the data. The coefficient for weeks will is the coefficient for weeks for the reference group (2019) only. The interaction term between year and weeks represents the difference in the coefficients between 2019 and 2020. Lastly, to obtain the coefficient for 2020 (the comparison group), all we need to to is add the coefficients for the predictor (weeks) on its own and week*year interaction. This will give us a p value, which is good. So let's fit the regression line. 
 
-# 2020 COVID-19 Intervention Analysis
+```{r}
+#Fit the regression.
+fit <- lm(mets ~ weeks + weeks*year, data  = df)
+```
+
+Let's check the assumptions of our model using a few key diagnostic plot.
+
+```{r}
+forecast::checkresiduals(fit)
+plot(fit)
+```
+
+A quick refresher that we don't want to reject the null in the Breusch-Godfrey test, as it's that there's no serial correlation in our data. In other words, we want p > 0.05 for this to work. Checking the other diagnostic plots tells us that our linear models work as well. And let's grab the p value for each interaction term.
+
+```{r}
+library(ggplot2)
+#2019
+df2019 <- df[1:11,]
+ggplot(data = df2019, mapping = aes(weeks, mets)) + geom_point() + geom_abline(intercept = coefficients(fit)[1],
+                                                                           slope = coefficients(fit)[2])
+#2020
+df2020 <- df[12:22,]
+ggplot(data = df2020, mapping = aes(weeks, mets)) + geom_point() + geom_abline(intercept = coefficients(fit)[1],
+                                                                           slope = coefficients(fit)[2])
+
+anova(fit)
+```
+
+*Conclusions*
+
+We can conclude that time trends for met-minutes do not differ significantly between 2020 and 2019.
+
+## COVID-19 Intervention Analyses
 
 Our intervention analyses will follow the structure below (taken from https://online.stat.psu.edu/stat510/lesson/9/9.2):
 
@@ -198,82 +214,26 @@ If we fit an ARIMA model to the 2020 [Jan 1 - March11] data automatically, we yi
 autofit <- forecast::auto.arima(ts(RMHF::read_data()[11:16, "Met-minutes"]))
 ```
 
-Note that this is a white-noise model. Checking our assumptions.
+Checking our assumptions
 
 ```{r fig.height = 5, fig.width = 5}
 forecast::checkresiduals(autofit)
 tsdiag(autofit)
 ```
 
-All the autocorrelations for the residual series are non-significant, which is what we'd like. The model passes the Box-Ljung test as well. In other words, our model appears to work. Because our model is a white noise model, then it is not forcastable by definition because its values at different times are statistically insignificant.
+All the autocorrelations for the residual series are non-significant, which is what we'd like. The model passes the Box-Ljung test as well. In other words, our model appears to work. But because our model is a white noise model, it is not forcastable by definition because its values at different times are statistically insignificant. In addition, the fact that both our autoregressive and moving average components have an estimated order of 0 suggests that maybe we don't need an ARIMA model here after all.
 
+Is interaction with dummy intervention variable significant?
 
-Alright, so we got the same point predicted every time - the mean of the ARIMA model. However, the fact that both our autoregressive and moving average components have an estimated order of 0 suggests that maybe we don't need an ARIMA model here after all. Let's try fitting a regression line and grabbing those predictions as well. We should also check the diagnostic plots for our 2020 model.
-
-
-```{r}
-pre2020 <- df[12:16,]
-post2020 <- df[18:22,]
-#Fix the column names of both objects so we can fit the regression models.
-colnames(pre2020) <- c(colnames(pre2020)[1:10], "mets")
-colnames(post2020) <- c(colnames(post2020)[1:10], "mets")
-#Properly type the met-minutes column of each dataset.
-pre2020$mets <- as.numeric(pre2020$mets)
-post2020$mets <- as.numeric(post2020$mets)
-#Add a week number column to both datasets to regress on time.
-pre2020$weekNum <- 1:5
-post2020$weekNum <- 7:11
-#Fit the regression model.
-lm2020_before <- lm(pre2020, formula =  mets ~ weekNum)
-plot(lm2020_before)
-anova(lm2020_before)
-```
-
-Alright, so our model appear to work, though the interaction with time is nonsignificant. It's time to forecast some values after the intervention.
-
-```{r}
-pred <- predict(lm2020_before)
-```
-
-Let's grab the differences between the predictions generated by our model and the actual values:
-
-```{r}
-diff <- pred[1:5] - post2020$mets
-print(diff)
-```
-
-Plotting these differences against their index, we obtain the following:
-
-```{r fig.width = 5}
-library(ggplot2)
-plotDf <-  data.frame("differences" = diff, "indices" = 1:5, stringsAsFactors = FALSE)
-ggplot(data = plotDf, mapping = aes(indices, differences)) + geom_point() + labs(x = "Index", y = "Difference between fitted and true value", title = "Differences")
-```
-
-Let's also plot the differences against the true values.
-```{r fig.width = 5}
-plotDf <-  data.frame("true" = post2020$mets,
-                      "pred" = pred[1:5],
-                      "indices" = 1:5,
-                      stringsAsFactors = FALSE)
-ggplot(data = plotDf,
-       mapping = aes(indices)) +
-  geom_line(aes(y = true, colour = "darkblue")) +
-  geom_line(aes(y = pred, colour = "red")) +
-  labs(x = "Index",
-      y = "MET-minutes",
-      title = "Differences") +
-  scale_color_discrete(name = "type", labels = c("actual values", "fitted values"))
-```
-
+Not here yet.
 
 ##Volume of visits
 
 Automatic ARIMA model fitting yields the following.
 
 ```{r}
-pre2020$"% of patients who were no-shows" <- as.numeric(pre2020$"% of patients who were no-shows")
-forecast::auto.arima(pre2020$"% of patients who were no-shows")
+#pre2020$"% of patients who were no-shows" <- as.numeric(pre2020$"% of patients who were no-shows")
+#forecast::auto.arima(pre2020$"% of patients who were no-shows")
 ```
 
 With no autoregressive or moving average components, it's not clear that we need an ARIMA model, at all. Let's try simple linear regression.
