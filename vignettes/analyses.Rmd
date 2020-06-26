@@ -2,7 +2,7 @@
 title: "My Heart Fitness COVID-19 Results"
 author: "Zachary Levine"
 date: "`r Sys.Date()`"
-output: rmarkdown::html_vignette
+output: pdf_document
 vignette: >
   %\VignetteIndexEntry{Vignette Title}
   %\VignetteEngine{knitr::rmarkdown}
