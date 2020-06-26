@@ -177,7 +177,7 @@ What we're going to do here is include an interaction term between year (2019, 2
 
 ```{r}
 #Fit the regression.
-fit <- lm(mets ~ weeks + year+ weeks*year, data  = df)
+fit <- lm(mets ~ weeks + weeks*year, data  = df)
 ```
 
 Let's check the assumptions of our model using a few diagnostic plots.
@@ -190,19 +190,7 @@ plot(fit)
 A quick refresher that we don't want to reject the null in the Breusch-Godfrey test, as it's that there's no serial correlation in our data. In other words, we want p > 0.05 for this to work. Checking the other diagnostic plots tells us that our linear models work as well. And let's grab the p value for each interaction term.
 
 ```{r}
-library(ggplot2)
-#2019
-df2019 <- df[1:11,]
-ggplot(data = df2019, mapping = aes(weeks, mets)) +
-  geom_point() +
-  geom_abline(intercept = coefficients(fit)[1],
-              slope = coefficients(fit)[2])
-#2020
-df2020 <- df[12:22,]
-ggplot(data = df2020, mapping = aes(weeks, mets)) +
-  geom_point() +
-  geom_abline(intercept = coefficients(fit)[1],
-              slope = coefficients(fit)[2])
+anova(fit)
 summary(fit)
 ```
 
@@ -281,27 +269,14 @@ df$weeks <- c(1:11, 1:11)
 #Create a dummy variable for the year.
 df$year <- c(rep(0, 11), rep(1, 11)) 
 #Fit the regression.
-fitvol <- lm(vol ~ weeks + year + weeks*year, data  = df)
+fitvol <- lm(vol ~ weeks + weeks*year, data  = df)
 ```
 
 Let's check the assumptions of our model using a few diagnostic plots.
 
 ```{r}
 forecast::checkresiduals(fitvol)
-plot(fitvol)
-library(ggplot2)
-#2019
-df2019 <- df[1:11,]
-ggplot(data = df2019, mapping = aes(weeks, vol)) +
-  geom_point() +
-  geom_abline(intercept = coefficients(fitvol)[1],
-              slope = coefficients(fitvol)[2])
-#2020
-df2020 <- df[12:22,]
-ggplot(data = df2020, mapping = aes(weeks, vol)) +
-  geom_point() +
-  geom_abline(intercept = coefficients(fitvol)[1],
-              slope = coefficients(fitvol)[2])
+anova(fit)
 summary(fitvol)
 ```
 
@@ -321,17 +296,18 @@ If we fit an ARIMA model to the 2020 data automatically, we yield the following 
 autofit <- forecast::auto.arima(ts(RMHF::read_data()[12:22, "Met-minutes"]))
 ```
 
-This tells us the ideal ARIMA model is a white noise model. Let's then fit another ARIMA model incuding a regressor that codes for the intervention.
+This tells us the ideal ARIMA model is a white noise model. So we can use simple linear regression for an algebraically equivalent model.
 
 ```{r}
-intervention <- c(rep(0, 6), rep(1, 5))
-fit_include_intervention <- arima(RMHF::read_data()[12:22, "Met-minutes"], order = c(0,0,0), xreg = intervention)
+theDf <- data.frame("y" = as.numeric(read_data()[12:22,]$"Met-minutes"), "weeks" = 1:11,  "int" = c(rep(0,6), rep(1,5)), stringsAsFactors = FALSE)
+fullLm <- lm(data = theDf, formula = y ~ weeks + weeks*int)
+half <- lm(data = theDf, formula = y ~ weeks)
 ```
 
 Now, if we use the likelihood ratio test of nested models, we can get the p value associated with the effect of the intervention.
 
 ```{r}
-lmtest::lrtest(fit_include_intervention, autofit)
+lmtest::lrtest(fullLm, half)
 ```
 
 This test compares the goodness of fit of two nested models (which we have). The null hypothesis in this test is that the smaller model fits the data better. So, if we reject *H0*, then the larger model is statistically significantly better than the smaller one. In this case, the larger model which also regresses on the presence of the intervention, is not statistically significantly better for our data. What does this tell us? The presence of the intervention did not change met minutes too much.
@@ -345,17 +321,18 @@ autofit <- forecast::auto.arima(ts(RMHF::read_data()[12:22, "Prescheduled appoin
 forecast::checkresiduals(autofit)
 ```
 
-This tells us the ideal ARIMA model is a white noise model. Let's then fit another ARIMA model incuding a regressor that codes for the intervention.
+This tells us the ideal ARIMA model is a white noise model. So let's use simple linear regression here (which our ARIMA is algebraically equivalent to, anyway)
 
 ```{r}
-intervention <- c(rep(0, 6), rep(1, 5))
-fit_include_intervention <- arima(RMHF::read_data()[12:22, "Prescheduled appointments"], order = c(0,0,0), xreg = intervention)
+theDf <- data.frame("y" = as.numeric(read_data()[12:22,]$"Prescheduled appointments"), "weeks" = 1:11,  "int" = c(rep(0,6), rep(1,5)), stringsAsFactors = FALSE)
+fullLm <- lm(data = theDf, formula = y ~ weeks + weeks*int)
+half <- lm(data = theDf, formula = y ~ weeks)
 ```
 
 Now, if we use the likelihood ratio test of nested models, we can get the p value associated with the effect of the intervention.
 
 ```{r}
-lmtest::lrtest(fit_include_intervention, autofit)
+lmtest::lrtest(fullLm, half)
 ```
 
 In this case, the larger model which also regresses on the presence of the intervention, is not statistically significantly better for our data. What does this tell us? The presence of the intervention did not volume of visits minutes too much.
@@ -369,20 +346,23 @@ autofit <- forecast::auto.arima(ts(RMHF::read_data()[12:22, "% of patients who w
 forecast::checkresiduals(autofit)
 ```
 
-This tells us the ideal ARIMA model is a white noise model. Let's then fit another ARIMA model incuding a regressor that codes for the intervention.
+This tells us the ideal ARIMA model is a white noise model. So let's use simple linear regression here. 
 
 ```{r}
-intervention <- c(rep(0, 6), rep(1, 5))
-fit_include_intervention <- arima(RMHF::read_data()[12:22, "% of patients who were no-shows"], order = c(0,0,0), xreg = intervention)
+theDf <- data.frame("y" = as.numeric(read_data()[12:22,]$"% of patients who were no-shows"), "weeks" = 1:11,  "int" = c(rep(0,6), rep(1,5)), stringsAsFactors = FALSE)
+fullLm <- lm(data = theDf, formula = y ~ weeks + weeks*int)
+half <- lm(data = theDf, formula = y ~ weeks)
 ```
 
 Now, if we use the likelihood ratio test of nested models, we can get the p value associated with the effect of the intervention.
 
 ```{r}
-lmtest::lrtest(fit_include_intervention, autofit)
+lmtest::lrtest(fullLm, half)
 ```
 
 In this case, the larger model which also regresses on the presence of the intervention, is statistically significantly better for our data. So the intervention had a significicant effect on program attendance. Wohoo.
+
+
 
 ###  Met-minute and % Attendance and interaction (because it is a sign of compliance)
 
