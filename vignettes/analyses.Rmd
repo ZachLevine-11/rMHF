@@ -112,7 +112,7 @@ pacf(as.numeric(tsdf2020mets))
 
 ```
 
-The 0th lag will always be significant but this tells us nothing. What we do see is a lack of a pattern in both the acf and pacf for both plots. This points to a lack of seasonality. Indeed, if we try and extract the frequency from both objects. we obtain one, indicating no seasonality.
+The 0th lag will always be significant but this tells us nothing. What we do see is a lack of a pattern in both the acf and pacf for both plots. There's just statistically insignificant randomness. This points to a lack of seasonality. Indeed, if we try and extract the frequency from both objects. we obtain one, indicating no seasonality.
 
 ```{r}
 #Extract frequency from 2019 data.
@@ -122,7 +122,7 @@ forecast::findfrequency(tsdf2020mets)
 ```
 This agrees with *"Wiener–Khinchin theorem, also known as the Wiener–Khintchine theorem and sometimes as the Wiener–Khinchin–Einstein theorem or the Khinchin–Kolmogorov theorem, [which] states that the autocorrelation function of a wide-sense-stationary random process has a spectral decomposition given by the power spectrum of that process"* (Wikipedia).
 
-But what if we were to decompose each year by seasonal periods of 2, 3, 4, or 5 weeks (the maximum for a series of 11 points to be periodic)? Seastest does exactly this by using an F test on seasonal dummies and checking for statistically significant seasonality coefficients (betas).
+But what if we were to decompose each year by seasonal periods of 2, 3, 4, or 5 weeks (the maximum for a series of 11 points to be periodic)? Seastest does exactly this by using an F test on seasonal dummies and checking for statistically significant seasonality coefficients (betas). Essentially, we fit the data to a regression model encoded with seasonal dummy variables and we test each parameter estimate for statistical significance at the 0.05 level. 
 
 ```{r}
 testSeasonality <- function(listobj){
@@ -299,7 +299,7 @@ autofit <- forecast::auto.arima(ts(RMHF::read_data()[12:22, "Met-minutes"]))
 This tells us the ideal ARIMA model is a white noise model. So we can use simple linear regression for an algebraically equivalent model.
 
 ```{r}
-theDf <- data.frame("y" = as.numeric(read_data()[12:22,]$"Met-minutes"), "weeks" = 1:11,  "int" = c(rep(0,6), rep(1,5)), stringsAsFactors = FALSE)
+theDf <- data.frame("y" = as.numeric(RMHF::read_data()[12:22,]$"Met-minutes"), "weeks" = 1:11,  "int" = c(rep(0,6), rep(1,5)), stringsAsFactors = FALSE)
 fullLm <- lm(data = theDf, formula = y ~ weeks + weeks*int)
 half <- lm(data = theDf, formula = y ~ weeks)
 ```
@@ -324,7 +324,7 @@ forecast::checkresiduals(autofit)
 This tells us the ideal ARIMA model is a white noise model. So let's use simple linear regression here (which our ARIMA is algebraically equivalent to, anyway)
 
 ```{r}
-theDf <- data.frame("y" = as.numeric(read_data()[12:22,]$"Prescheduled appointments"), "weeks" = 1:11,  "int" = c(rep(0,6), rep(1,5)), stringsAsFactors = FALSE)
+theDf <- data.frame("y" = as.numeric(RMHF::read_data()[12:22,]$"Prescheduled appointments"), "weeks" = 1:11,  "int" = c(rep(0,6), rep(1,5)), stringsAsFactors = FALSE)
 fullLm <- lm(data = theDf, formula = y ~ weeks + weeks*int)
 half <- lm(data = theDf, formula = y ~ weeks)
 ```
@@ -349,7 +349,7 @@ forecast::checkresiduals(autofit)
 This tells us the ideal ARIMA model is a white noise model. So let's use simple linear regression here. 
 
 ```{r}
-theDf <- data.frame("y" = as.numeric(read_data()[12:22,]$"% of patients who were no-shows"), "weeks" = 1:11,  "int" = c(rep(0,6), rep(1,5)), stringsAsFactors = FALSE)
+theDf <- data.frame("y" = as.numeric(RMHF::read_data()[12:22,]$"% of patients who were no-shows"), "weeks" = 1:11,  "int" = c(rep(0,6), rep(1,5)), stringsAsFactors = FALSE)
 fullLm <- lm(data = theDf, formula = y ~ weeks + weeks*int)
 half <- lm(data = theDf, formula = y ~ weeks)
 ```
@@ -362,15 +362,46 @@ lmtest::lrtest(fullLm, half)
 
 In this case, the larger model which also regresses on the presence of the intervention, is statistically significantly better for our data. So the intervention had a significicant effect on program attendance. Wohoo.
 
-
-
 ###  Met-minute and % Attendance and interaction (because it is a sign of compliance)
 
-We want to see whether the intervention had a significant impact on the relationship between attendance and met-minute interactions.
+We want to see whether the intervention had a significant impact on the relationship between attendance and met-minute interactions. First, let's just see this relationship mapped out in the 2020 data.
 
-What we're going to do here is include an interaction term between intervention and time, whose coefficient (trend) we want to compare. Since we think that the effect of attendance on met-minutes in 2020 might have a different effect before and after 2020, we include an interaction term between attendance and the intervention. Then we'll fit  a regression model to the data.
+```{r}
+library(ggplot2)
+#Create the data encoded with a dummy variable for the pre/post occurence intervention.
+ourDf <- data.frame(attendance = as.numeric(RMHF::read_data()[12:22,]$"% of patients who were no-shows"), mets = as.numeric(RMHF::read_data()[12:22,]$"Met-minutes"), int = c(rep(0,6), rep(1,5)))
+ggplot(data = ourDf, mapping = aes(attendance, mets)) + geom_point() + labs(x = "Attendance", y = "Met-minutes")
+```
 
-The coefficient for % attendance is the coefficient for weeks before the intervention only. The interaction term between year and weeks represents the difference in the coefficients between before and after the intervention. This will give us a p value if we test the statistical significiance of the interaction effects which what we'd like. 
+Now let's fit a regression line and check our assumptions.
 
+```{r}
+fit <- lm(data = ourDf, formula = mets~ attendance + attendance*int)
+print(fit)
+plot(fit)
+summary(fit)
+```
+
+We note the lack of statistical significance in the attendance*intervention coefficient, telling us that the effect of the intervention was not statistically significant.
 
 #### Mean age and % females
+
+Now we'd like to see whether the intervention had a significant impact on the relationship between mean age and % females. First, let's just see this relationship mapped out in the 2020 data.
+
+```{r}
+library(ggplot2)
+#Create the data encoded with a dummy variable for the pre/post occurence intervention.
+ourDf <- data.frame(percentfemales = as.numeric(RMHF::read_data()[12:22,]$"% Females"), meanage = as.numeric(RMHF::read_data()[12:22,]$"Age"), int = c(rep(0,6), rep(1,5)))
+ggplot(data = ourDf, mapping = aes(percentfemales, meanage)) + geom_point() + labs(x = "% Females", y = "Mean age")
+```
+
+Now let's fit a regression line and check our assumptions.
+
+```{r}
+fit <- lm(data = ourDf, formula = meanage ~ percentfemales + percentfemales*int)
+print(fit)
+plot(fit)
+summary(fit)
+```
+
+We once again note the lack of statistical significance. 

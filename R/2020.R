@@ -2,6 +2,8 @@
 #' @import dplyr
 #' @import anytime
 #' @export
+#'
+#'
 read_data <- function(fn = "2020Data.csv"){
   df <- read.csv(system.file(fn, package = "RMHF"), stringsAsFactors = FALSE)
   #Drop the empty rows:
