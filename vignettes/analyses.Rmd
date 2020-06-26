@@ -1,6 +1,6 @@
 ---
-title: "COVID-19 Stuff"
-author: "My Heart Fitness"
+title: "My Heart Fitness COVID-19 Results"
+author: "Zachary Levine"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
