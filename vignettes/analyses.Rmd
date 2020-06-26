@@ -405,3 +405,6 @@ summary(fit)
 ```
 
 We once again note the lack of statistical significance. 
+
+# Conclusions
+The lack of statistically signifiant decreases in almost every variable we looked at is telling. Despite so much changing during the COVID-19 Pandemic, much stayed constant. For instance, despite gyms shuttering their doors, the exercise before to the exercise after the pandemic was constant. This is interesting. Even more interesting is that despite the fact that appointments during the pandemic are fully virtual, attendance went down significantly during the pandemic. One would generally expect the opposite result, as virtual appointments do not require one to leave one's house.
