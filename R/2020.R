@@ -40,3 +40,26 @@ create_lag <- function(df = read_data(), var = "Met-minutes", lag_ = 1){
   colnames(df) <- c(var, "lag")
   return(df)
 }
+
+plots_attendance <- function(){
+  df  <- read_data()[12:22,]
+  df$att <- as.numeric(df$"% of patients who were no-shows")
+  df$int <- c(rep(0,6), rep(1,5))
+  library(ggplot2)
+  #PLotting 2020 only
+  p <- ggplot(df, mapping = aes(x = c(1:11), y = att, colour = int)) + geom_point() + labs(x = "Number of weeks", y = "%No shows", title = "Attendance and COVID-19 Social Distancing")
+  p <- p + geom_vline(xintercept = 6) + theme(legend.position = "none")
+  p
+}
+
+
+plots_mets <- function(){
+  df  <- read_data()[12:22,]
+  df$mets <- as.numeric(df$"Met-minutes")
+  df$int <- c(rep(0,6), rep(1,5))
+  library(ggplot2)
+  #PLotting 2020 only
+  p <- ggplot(df, mapping = aes(x = c(1:11), y = mets, colour = int)) + geom_point() + labs(x = "Number of weeks", y = "Reported Met minutes", title = "Met minutes and COVID-19 Social Distancing")
+  p <- p + geom_vline(xintercept = 6) + theme(legend.position = "none")
+  p
+}
