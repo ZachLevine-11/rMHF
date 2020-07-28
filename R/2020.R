@@ -47,11 +47,22 @@ plots_attendance <- function(){
   df$int <- c(rep(0,6), rep(1,5))
   library(ggplot2)
   #PLotting 2020 only
-  p <- ggplot(df, mapping = aes(x = c(1:11), y = att, colour = int)) + geom_point() + labs(x = "Number of weeks", y = "%No shows", title = "Attendance and COVID-19 Social Distancing")
+  p <- ggplot(df, mapping = aes(x = c(1:11), y = att, colour = factor(int))) + geom_point() + labs(x = "Number of weeks", y = "%No shows", title = "Attendance and COVID-19 Social Distancing")
   p <- p + geom_vline(xintercept = 6) + theme(legend.position = "none")
+  p <- p + geom_smooth(method = "lm", se = FALSE)
   p
 }
 
+plots_attendance_both_years <- function(){
+  df <- read_data()
+  df$att <- as.numeric(df$"% of patients who were no-shows")
+  df <- df[c(7:11, 18:22),]
+  year <- c(rep("2019",5), rep("2020",5))
+  library(ggplot2)
+  p <- ggplot(df, mapping = aes(x = c(7:11, 7:11), y = att, colour = factor(year))) + geom_point() + labs(x = "Number of weeks", y = "%No shows", title = "Attendance and COVID-19 Social Distancing")
+  p
+  p + geom_smooth(method = "lm", se = FALSE)
+}
 
 plots_mets <- function(){
   df  <- read_data()[12:22,]
@@ -61,5 +72,18 @@ plots_mets <- function(){
   #PLotting 2020 only
   p <- ggplot(df, mapping = aes(x = c(1:11), y = mets, colour = int)) + geom_point() + labs(x = "Number of weeks", y = "Reported Met minutes", title = "Met minutes and COVID-19 Social Distancing")
   p <- p + geom_vline(xintercept = 6) + theme(legend.position = "none")
+  p
+}
+
+plots_females <- function(){
+  df  <- read_data()[12:22,]
+  df$females <- as.numeric(df$"% Females")
+  df$int <- c(rep(0,6), rep(1,5))
+  df$weeks <- 1:11
+  library(ggplot2)
+  #PLotting 2020 only
+  p <- ggplot(df, mapping = aes(x = c(1:11), y = females, colour = factor(int))) + geom_point() + labs(x = "Number of weeks", y = "% Females", title = "% Females in the program and COVID-19 Social Distancing")
+  p <- p + geom_vline(xintercept = 6) + theme(legend.position = "none")
+  p <- p + geom_smooth(method = "lm", se = FALSE)
   p
 }
