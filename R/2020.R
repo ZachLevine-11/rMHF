@@ -87,3 +87,5 @@ plots_females <- function(){
   p <- p + geom_smooth(method = "lm", se = FALSE)
   p
 }
+
+##Tests t.test(as.numeric(read_data()[1:11,]$"Met-minutes"), as.numeric(read_data()[12:22,]$"Met-minutes"), paired = TRUE)
