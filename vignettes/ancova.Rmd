@@ -21,7 +21,6 @@ Let's start by creating our data of interest for %No shows (attendance).
 ```{r}
 ##Use to bypass having to use double colon operator each time.
 read_data <- RMHF::read_data
-
 df2019 <- read_data()[1:11,]
 df2020 <- read_data()[12:22,]
 var2019 <- as.numeric(df2019$"% of patients who were no-shows")
@@ -38,8 +37,6 @@ anova_test(data = df, formula = post ~ pre + int)
 Now for Met-minutes.
 
 ```{r}
-df2019 <- read_data()[1:11,]
-df2020 <- read_data()[12:22,]
 var2019 <- as.numeric(df2019$"Met-minutes")
 var2020 <- as.numeric(df2020$"Met-minutes")
 intervention <- c(rep("no", 6), rep("yes", 5))
@@ -53,8 +50,6 @@ anova_test(data = dfmets, formula = post ~ pre + int)
 Now for % Females
 
 ```{r}
-df2019 <- read_data()[1:11,]
-df2020 <- read_data()[12:22,]
 var2019 <- as.numeric(df2019$"% of patients who were no-shows")
 var2020 <- as.numeric(df2020$"% of patients who were no-shows")
 intervention <- c(rep("no", 6), rep("yes", 5))
@@ -68,8 +63,6 @@ anova_test(data = dfmets, formula = post ~ pre + int)
 Now for Age
 
 ```{r}
-df2019 <- read_data()[1:11,]
-df2020 <- read_data()[12:22,]
 var2019 <- as.numeric(df2019$"Age")
 var2020 <- as.numeric(df2020$"Age")
 intervention <- c(rep("no", 6), rep("yes", 5))
@@ -82,8 +75,6 @@ anova_test(data = dfmets, formula = post ~ pre + int)
 
 Now for Prescheduled appointments"  
 ```{r}
-df2019 <- read_data()[1:11,]
-df2020 <- read_data()[12:22,]
 var2019 <- as.numeric(df2019$"Prescheduled appointments")
 var2020 <- as.numeric(df2020$"Prescheduled appointments")
 intervention <- c(rep("no", 6), rep("yes", 5))
@@ -95,4 +86,4 @@ Now we can regress 2020 data on the categorical presence of the intervention, wi
 anova_test(data = dfmets, formula = post ~ pre + int)
 ```
 
-In conclusion, after adjusting for 2019 data, the intervention had no significant effect on 2020 data for any of the variables studied.
+In conclusion, after adjusting for 2019 data, the intervention had no significant effect on 2020 data for any of the variables studied after adjusting for 2019 data.
