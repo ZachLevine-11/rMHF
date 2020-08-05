@@ -50,8 +50,8 @@ anova_test(data = dfmets, formula = post ~ pre + int)
 Now for % Females
 
 ```{r}
-var2019 <- as.numeric(df2019$"% of patients who were no-shows")
-var2020 <- as.numeric(df2020$"% of patients who were no-shows")
+var2019 <- as.numeric(df2019$"% Females")
+var2020 <- as.numeric(df2020$"% Females")
 intervention <- c(rep("no", 6), rep("yes", 5))
 dfmets <- data.frame("pre" = var2019, "post" = var2020, "int" = intervention, stringsAsFactors = FALSE)
 ```
@@ -73,7 +73,7 @@ Now we can regress 2020 data on the categorical presence of the intervention, wi
 anova_test(data = dfmets, formula = post ~ pre + int)
 ```
 
-Now for Prescheduled appointments"  
+Now for Prescheduled appointments (volume of visits)
 ```{r}
 var2019 <- as.numeric(df2019$"Prescheduled appointments")
 var2020 <- as.numeric(df2020$"Prescheduled appointments")
