@@ -64,7 +64,7 @@ plots_attendance_both_years <- function(){
   p + geom_smooth(method = "lm", se = FALSE)
 }
 
-plots_mets <- function(){
+plots_mets_2020 <- function(){
   df  <- read_data()[12:22,]
   df$mets <- as.numeric(df$"Met-minutes")
   df$int <- c(rep(0,6), rep(1,5))
@@ -72,6 +72,17 @@ plots_mets <- function(){
   #PLotting 2020 only
   p <- ggplot(df, mapping = aes(x = c(1:11), y = mets, colour = int)) + geom_point() + labs(x = "Number of weeks", y = "Reported Met minutes", title = "Met minutes and COVID-19 Social Distancing")
   p <- p + geom_vline(xintercept = 6) + theme(legend.position = "none")
+  p
+}
+
+plots_mets_2019 <- function(){
+  df  <- read_data()[1:11,]
+  df$mets <- as.numeric(df$"Met-minutes")
+  df$weeks <- 1:11
+  library(ggplot2)
+  #PLotting 2020 only
+  p <- ggplot(df, mapping = aes(x = c(1:11), y = mets)) + geom_point() + labs(x = "Number of weeks", y = "Reported Met minutes", title = "Met minutes in 2019")
+  p <- p + theme(legend.position = "none") + geom_smooth()
   p
 }
 
