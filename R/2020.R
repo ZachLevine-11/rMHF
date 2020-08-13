@@ -53,15 +53,14 @@ plots_attendance <- function(){
   p
 }
 
+#Spread over the entire timescale.
 plots_attendance_both_years <- function(){
   df <- read_data()
   df$att <- as.numeric(df$"% of patients who were no-shows")
-  df <- df[c(7:11, 18:22),]
-  year <- c(rep("2019",5), rep("2020",5))
+  df$year <- c(rep("2019", 11), (rep("2020", 11)))
   library(ggplot2)
-  p <- ggplot(df, mapping = aes(x = c(7:11, 7:11), y = att, colour = factor(year))) + geom_point() + labs(x = "Number of weeks", y = "%No shows", title = "Attendance and COVID-19 Social Distancing")
+  p <- ggplot(df, mapping = aes(x = 1:22, y = att, colour = factor(year))) + geom_point() + labs(x = "Number of weeks", y = "%No shows", title = "Attendance across 2019 and 2020")
   p
-  p + geom_smooth(method = "lm", se = FALSE)
 }
 
 plots_mets_2020 <- function(){
