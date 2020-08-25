@@ -41,61 +41,40 @@ create_lag <- function(df = read_data(), var = "Met-minutes", lag_ = 1){
   return(df)
 }
 
-plots_attendance <- function(){
-  df  <- read_data()[12:22,]
+#' @import ggplot2
+#' @import dplyr
+#' @import anytime
+#' @export
+#'
+#'
+plot_attendance_both <- function(){
+  df  <- read_data()
   df$att <- as.numeric(df$"% of patients who were no-shows")
-  df$int <- c(rep(0,6), rep(1,5))
+  df$weeks <- c(1:11, 1:11)
+  df$year <- c(rep("2019", 11), rep("2020", 11))
   library(ggplot2)
   #PLotting 2020 only
-  p <- ggplot(df, mapping = aes(x = c(1:11), y = att, colour = factor(int))) + geom_point() + labs(x = "Number of weeks", y = "%No shows", title = "Attendance and COVID-19 Social Distancing")
-  p <- p + geom_vline(xintercept = 6) + theme(legend.position = "none")
-  p <- p + geom_smooth(method = "lm", se = FALSE)
+  p <- ggplot(df, mapping = aes(x = weeks, y = att, colour = year)) + geom_point() + labs(x = "Weeks", y = "% of appointments missed", title = "No-show rates")
+  p <- p + geom_smooth(data = df[1:11,]) + geom_smooth(data = df[12:22,])
   p
 }
 
-#Spread over the entire timescale.
-plots_attendance_both_years <- function(){
-  df <- read_data()
-  df$att <- as.numeric(df$"% of patients who were no-shows")
-  df$year <- c(rep("2019", 11), (rep("2020", 11)))
-  library(ggplot2)
-  p <- ggplot(df, mapping = aes(x = 1:22, y = att, colour = factor(year))) + geom_point() + labs(x = "Number of weeks", y = "%No shows", title = "Attendance across 2019 and 2020")
-  p
-}
-
-plots_mets_2020 <- function(){
-  df  <- read_data()[12:22,]
+#' @import ggplot2
+#' @import dplyr
+#' @import anytime
+#' @export
+#'
+#'
+plot_mets_both <- function(){
+  df  <- read_data()
   df$mets <- as.numeric(df$"Met-minutes")
-  df$int <- c(rep(0,6), rep(1,5))
-  library(ggplot2)
+  df$weeks <- c(1:11, 1:11)
+  df$year <- c(rep("2019", 11), rep("2020", 11))
   #PLotting 2020 only
-  p <- ggplot(df, mapping = aes(x = c(1:11), y = mets, colour = int)) + geom_point() + labs(x = "Number of weeks", y = "Reported Met minutes", title = "Met minutes and COVID-19 Social Distancing")
-  p <- p + geom_vline(xintercept = 6) + theme(legend.position = "none")
+  p <- ggplot(df, mapping = aes(x = weeks, y = mets, colour = year)) + geom_point() + labs(x = "Weeks", y = "Weekly Average", title = "Reported Met Minutes")
+  p <- p + geom_smooth(data = df[1:11,]) + geom_smooth(data = df[12:22,])
   p
 }
 
-plots_mets_2019 <- function(){
-  df  <- read_data()[1:11,]
-  df$mets <- as.numeric(df$"Met-minutes")
-  df$weeks <- 1:11
-  library(ggplot2)
-  #PLotting 2020 only
-  p <- ggplot(df, mapping = aes(x = c(1:11), y = mets)) + geom_point() + labs(x = "Number of weeks", y = "Reported Met minutes", title = "Met minutes in 2019")
-  p <- p + theme(legend.position = "none") + geom_smooth()
-  p
-}
-
-plots_females <- function(){
-  df  <- read_data()[12:22,]
-  df$females <- as.numeric(df$"% Females")
-  df$int <- c(rep(0,6), rep(1,5))
-  df$weeks <- 1:11
-  library(ggplot2)
-  #PLotting 2020 only
-  p <- ggplot(df, mapping = aes(x = c(1:11), y = females, colour = factor(int))) + geom_point() + labs(x = "Number of weeks", y = "% Females", title = "% Females in the program and COVID-19 Social Distancing")
-  p <- p + geom_vline(xintercept = 6) + theme(legend.position = "none")
-  p <- p + geom_smooth(method = "lm", se = FALSE)
-  p
-}
 
 ##Tests t.test(as.numeric(read_data()[1:11,]$"Met-minutes"), as.numeric(read_data()[12:22,]$"Met-minutes"), paired = TRUE)
