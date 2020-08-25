@@ -1,6 +1,4 @@
-doc
 Meta
-doc/
 inst/doc
 .Rproj.user
 .Rbuildignore
