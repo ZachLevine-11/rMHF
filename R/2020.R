@@ -77,4 +77,3 @@ plot_mets_both <- function(){
 }
 
 
-##Tests t.test(as.numeric(read_data()[1:11,]$"Met-minutes"), as.numeric(read_data()[12:22,]$"Met-minutes"), paired = TRUE)
