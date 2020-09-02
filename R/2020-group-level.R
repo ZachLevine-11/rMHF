@@ -1,4 +1,3 @@
-#' @import ggplot2
 #' @import dplyr
 #' @import anytime
 #' @export
