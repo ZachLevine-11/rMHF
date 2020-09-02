@@ -4,7 +4,7 @@
 #' @export
 #'
 #'
-read_data <- function(fn = "2020Data.csv"){
+read_group_data <- function(fn = "2020/2020Data.csv"){
   df <- read.csv(system.file(fn, package = "RMHF"), stringsAsFactors = FALSE)
   #Drop the empty rows:
   df <- df[c(1:11, 12:nrow(df)),]

@@ -1,5 +1,5 @@
 ---
-title: "ANCOVA Analyses for MHF 2019 and 2020 Data"
+title: "Individual level analyses for MHF paper 2"
 author: "Zachary Levine"
 date: "`r Sys.Date()`"
 output: pdf_document
