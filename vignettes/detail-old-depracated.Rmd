@@ -1,5 +1,5 @@
 ---
-title: "My Heart Fitness COVID-19 Results"
+title: "Old Group level MHF COVID-19 analyses"
 author: "Zachary Levine"
 date: "`r Sys.Date()`"
 output: pdf_document
