@@ -47,12 +47,12 @@ create_lag <- function(df = read_data(), var = "Met-minutes", lag_ = 1){
 #'
 #'
 plot_attendance_both <- function(){
-  df  <- read_data()
+  df  <- read_group_data()
   df$att <- as.numeric(df$"% of patients who were no-shows")
   df$weeks <- c(1:11, 1:11)
   df$year <- c(rep("2019", 11), rep("2020", 11))
   library(ggplot2)
-  #PLotting 2020 only
+  #Plotting 2020 only
   p <- ggplot(df, mapping = aes(x = weeks, y = att, colour = year)) + geom_point() + labs(x = "Weeks", y = "% of appointments missed", title = "No-show rates")
   p <- p + geom_smooth(data = df[1:11,]) + geom_smooth(data = df[12:22,])
   p
@@ -65,7 +65,7 @@ plot_attendance_both <- function(){
 #'
 #'
 plot_mets_both <- function(){
-  df  <- read_data()
+  df  <- read_group_data()
   df$mets <- as.numeric(df$"Met-minutes")
   df$weeks <- c(1:11, 1:11)
   df$year <- c(rep("2019", 11), rep("2020", 11))
@@ -74,5 +74,3 @@ plot_mets_both <- function(){
   p <- p + geom_smooth(data = df[1:11,]) + geom_smooth(data = df[12:22,])
   p
 }
-
-
