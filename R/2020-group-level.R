@@ -46,7 +46,7 @@ create_lag <- function(df = read_data(), var = "Met-minutes", lag_ = 1){
 #' @export
 #'
 #'
-plot_attendance_both <- function(){
+attendance_plot <- function(){
   df  <- read_group_data()
   df$att <- as.numeric(df$"% of patients who were no-shows")
   df$weeks <- c(1:11, 1:11)
@@ -54,7 +54,7 @@ plot_attendance_both <- function(){
   library(ggplot2)
   #Plotting 2020 only
   p <- ggplot(df, mapping = aes(x = weeks, y = att, colour = year)) + geom_point() + labs(x = "Weeks", y = "% of appointments missed", title = "No-show rates")
-  p <- p + geom_smooth(data = df[1:11,]) + geom_smooth(data = df[12:22,])
+  p <- p + geom_smooth(data = df[1:11,], fill =  "#F8766D" ) + geom_smooth(data = df[12:22,], fill ="#00BFC4") + ylim(0, 100) +  geom_vline(xintercept=6, linetype="dotted")
   p
 }
 
@@ -64,13 +64,13 @@ plot_attendance_both <- function(){
 #' @export
 #'
 #'
-plot_mets_both <- function(){
+mets_plot <- function(){
   df  <- read_group_data()
   df$mets <- as.numeric(df$"Met-minutes")
   df$weeks <- c(1:11, 1:11)
   df$year <- c(rep("2019", 11), rep("2020", 11))
   #PLotting 2020 only
   p <- ggplot(df, mapping = aes(x = weeks, y = mets, colour = year)) + geom_point() + labs(x = "Weeks", y = "Weekly Average", title = "Reported Met Minutes")
-  p <- p + geom_smooth(data = df[1:11,]) + geom_smooth(data = df[12:22,])
+  p <- p + geom_smooth(data = df[1:11,], fill =  "#F8766D" ) + geom_smooth(data = df[12:22,], fill ="#00BFC4") + ylim(0, 1000)  + geom_vline(xintercept=6, linetype="dotted")
   p
 }
