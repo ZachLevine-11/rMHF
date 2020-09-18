@@ -9,4 +9,6 @@ inst/doc
 inst/
 man/
 .DS_Store
-doc
+doc/detail-old-depracated.pdf
+detail-old-depracated.R
+detail-old-depracated.Rmd

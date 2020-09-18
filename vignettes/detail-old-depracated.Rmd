@@ -44,20 +44,20 @@ We also switch between piecewise regression (in comparing time trends) and dynam
 # Comparing 2019 vs 2020 time trends
 
 ###Met-minutes
-We'll start by using `read_data()` to create the dataset we're going to use and properly format/type the attributes. This is more an exercise in data wrangling than anything else.
+We'll start by using `read_group_data()` to create the dataset we're going to use and properly format/type the attributes. This is more an exercise in data wrangling than anything else.
 We need to ascertain the model we're going to be using, and learn about the data and its features. The data runs from Jan 1 2019 until April 31 2019 and Jan 1 2019 until April 31, 2020. We begin by asking if the time series for 2019 and 2020 are stationary. Let's start with a visual inspection. We'll plot the variable against time. For *MET-minutes*, our plots for 2019 and 2020 are below.
 
 ```{r fig.width = 5, fig.height = 5}
-df <- RMHF::read_data()
+df <- RMHF::read_group_data()
 df2019mets <- df[1:11, "Met-minutes"]
 tsdf2019mets <- ts(df2019mets)
 # Is the 2020 time-series stationary?
 df2020mets <- df[12:22, "Met-minutes"]
 tsdf2020mets <- ts(df2020mets)
 # Met-minutes in 2019
-plot(ts(RMHF::read_data()[1:11,"Met-minutes"]))
+plot(ts(RMHF::read_group_data()[1:11,"Met-minutes"]))
 #  Met minutes in 2020
-plot(ts(RMHF::read_data()[12:22,"Met-minutes"]))
+plot(ts(RMHF::read_group_data()[12:22,"Met-minutes"]))
 ```
 
 We also note that there is no consistent trend in either time series over the entire time span. The series appear to wander up and down. There also don't appear to be any obvious outliers in either time series.
@@ -65,7 +65,7 @@ We also note that there is no consistent trend in either time series over the en
 First, let's use two good (unit root) tests of stationarity (Augmented Dickey-Fuller, KPSS) to determine whether the time series is stationary. Let's start with the _Augmented-Dickey-Fuller_ test. Here, the null hypothesis, _H0_ is that the series is non-stationary, that is, the existence of a unit root. The alternative hypothesis is that the series is stationary. We'd like a p value less than 0.05 to reject the null.
 
 ```{r}
-df <- RMHF::read_data()
+df <- RMHF::read_group_data()
 # Is the 2019 time-series stationary?
 tseries::adf.test(tsdf2019mets, alternative = "stationary")
 # Is the 2020 time-series stationary?
@@ -164,7 +164,7 @@ Since, our data is white noise we're not going to be able to forecast using clas
 
 What we can do is test whether the linear time trend differs between 2019 and 2020.
 ```{r}
-df <- RMHF::read_data()
+df <- RMHF::read_group_data()
 colnames(df) <- c(colnames(df)[1:10], "mets")
 df$mets <- as.numeric(df$mets)
 df$weeks <- c(1:11, 1:11)
@@ -199,11 +199,11 @@ From the p value for the interaction term  > 0.05, we can conclude that linear t
 
 
 #### Volume of visits
-We'll start by using `read_data()` to create the dataset we're going to use and properly format/type the attributes.
+We'll start by using `read_group_data()` to create the dataset we're going to use and properly format/type the attributes.
 We need to ascertain the model we're going to be using, and learn about the data and its features. We begin by asking if the time series for 2019 and 2020 are stationary. Let's start with a visual inspection. We'll plot the variable against time. For *Volume of visits*, our plots for 2019 and 2020 are below.
 
 ```{r fig.width = 5, fig.height = 5}
-df <- RMHF::read_data()
+df <- RMHF::read_group_data()
 df2019vol <- df[1:11, "Prescheduled appointments" ]
 ts2019vol <- ts(df2019vol)
 
@@ -262,7 +262,7 @@ We've now concluded that neither time series is seasonal, and that both are stat
 Once again, we're left with white noise. So let's fit the regression line model we'll be using.  We can test whether the linear time trend differs between 2019 and 2020.
 
 ```{r}
-df <- RMHF::read_data()
+df <- RMHF::read_group_data()
 colnames(df) <- c(colnames(df)[1:2], "vol", colnames(df)[4:length(colnames(df))])
 df$vol <- as.numeric(df$vol)
 df$weeks <- c(1:11, 1:11)
@@ -293,13 +293,13 @@ We're going to be using dynamic regression here.
 If we fit an ARIMA model to the 2020 data automatically, we yield the following automatic model fit. 
 
 ```{r fig.height = 5, fig.width = 5}
-autofit <- forecast::auto.arima(ts(RMHF::read_data()[12:22, "Met-minutes"]))
+autofit <- forecast::auto.arima(ts(RMHF::read_group_data()[12:22, "Met-minutes"]))
 ```
 
 This tells us the ideal ARIMA model is a white noise model. So we can use simple linear regression for an algebraically equivalent model.
 
 ```{r}
-theDf <- data.frame("y" = as.numeric(RMHF::read_data()[12:22,]$"Met-minutes"), "weeks" = 1:11,  "int" = c(rep(0,6), rep(1,5)), stringsAsFactors = FALSE)
+theDf <- data.frame("y" = as.numeric(RMHF::read_group_data()[12:22,]$"Met-minutes"), "weeks" = 1:11,  "int" = c(rep(0,6), rep(1,5)), stringsAsFactors = FALSE)
 fullLm <- lm(data = theDf, formula = y ~ weeks + weeks*int)
 half <- lm(data = theDf, formula = y ~ weeks)
 ```
@@ -317,14 +317,14 @@ This test compares the goodness of fit of two nested models (which we have). The
 If we fit an ARIMA model to the 2020 data automatically, we yield the following automatic model fit. 
 
 ```{r fig.height = 5, fig.width = 5}
-autofit <- forecast::auto.arima(ts(RMHF::read_data()[12:22, "Prescheduled appointments"]))
+autofit <- forecast::auto.arima(ts(RMHF::read_group_data()[12:22, "Prescheduled appointments"]))
 forecast::checkresiduals(autofit)
 ```
 
 This tells us the ideal ARIMA model is a white noise model. So let's use simple linear regression here (which our ARIMA is algebraically equivalent to, anyway)
 
 ```{r}
-theDf <- data.frame("y" = as.numeric(RMHF::read_data()[12:22,]$"Prescheduled appointments"), "weeks" = 1:11,  "int" = c(rep(0,6), rep(1,5)), stringsAsFactors = FALSE)
+theDf <- data.frame("y" = as.numeric(RMHF::read_group_data()[12:22,]$"Prescheduled appointments"), "weeks" = 1:11,  "int" = c(rep(0,6), rep(1,5)), stringsAsFactors = FALSE)
 fullLm <- lm(data = theDf, formula = y ~ weeks + weeks*int)
 half <- lm(data = theDf, formula = y ~ weeks)
 ```
@@ -342,14 +342,14 @@ In this case, the larger model which also regresses on the presence of the inter
 Automatic model fit. 
 
 ```{r fig.height = 5, fig.width = 5}
-autofit <- forecast::auto.arima(ts(RMHF::read_data()[12:22, "% of patients who were no-shows"]))
+autofit <- forecast::auto.arima(ts(RMHF::read_group_data()[12:22, "% of patients who were no-shows"]))
 forecast::checkresiduals(autofit)
 ```
 
 This tells us the ideal ARIMA model is a white noise model. So let's use simple linear regression here. 
 
 ```{r}
-theDf <- data.frame("y" = as.numeric(RMHF::read_data()[12:22,]$"% of patients who were no-shows"), "weeks" = 1:11,  "int" = c(rep(0,6), rep(1,5)), stringsAsFactors = FALSE)
+theDf <- data.frame("y" = as.numeric(RMHF::read_group_data()[12:22,]$"% of patients who were no-shows"), "weeks" = 1:11,  "int" = c(rep(0,6), rep(1,5)), stringsAsFactors = FALSE)
 fullLm <- lm(data = theDf, formula = y ~ weeks + weeks*int)
 half <- lm(data = theDf, formula = y ~ weeks)
 ```
@@ -369,7 +369,7 @@ We want to see whether the intervention had a significant impact on the relation
 ```{r}
 library(ggplot2)
 #Create the data encoded with a dummy variable for the pre/post occurence intervention.
-ourDf <- data.frame(attendance = as.numeric(RMHF::read_data()[12:22,]$"% of patients who were no-shows"), mets = as.numeric(RMHF::read_data()[12:22,]$"Met-minutes"), int = c(rep(0,6), rep(1,5)))
+ourDf <- data.frame(attendance = as.numeric(RMHF::read_group_data()[12:22,]$"% of patients who were no-shows"), mets = as.numeric(RMHF::read_group_data()[12:22,]$"Met-minutes"), int = c(rep(0,6), rep(1,5)))
 ggplot(data = ourDf, mapping = aes(attendance, mets)) + geom_point() + labs(x = "Attendance", y = "Met-minutes")
 ```
 
@@ -391,7 +391,7 @@ Now we'd like to see whether the intervention had a significant impact on the re
 ```{r}
 library(ggplot2)
 #Create the data encoded with a dummy variable for the pre/post occurence intervention.
-ourDf <- data.frame(percentfemales = as.numeric(RMHF::read_data()[12:22,]$"% Females"), meanage = as.numeric(RMHF::read_data()[12:22,]$"Age"), int = c(rep(0,6), rep(1,5)))
+ourDf <- data.frame(percentfemales = as.numeric(RMHF::read_group_data()[12:22,]$"% Females"), meanage = as.numeric(RMHF::read_group_data()[12:22,]$"Age"), int = c(rep(0,6), rep(1,5)))
 ggplot(data = ourDf, mapping = aes(percentfemales, meanage)) + geom_point() + labs(x = "% Females", y = "Mean age")
 ```
 

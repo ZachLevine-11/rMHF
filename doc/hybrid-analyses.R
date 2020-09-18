@@ -1,41 +1,15 @@
----
-title: "Attempting finality at individual level and group/level MHF COVID-19 Analyses"
-author: "Zachary Levine"
-date: "`r Sys.Date()`"
-output: pdf_document
-vignette: >
-  %\VignetteIndexEntry{Vignette Title}
-  %\VignetteEngine{knitr::rmarkdown}
-  %\VignetteEncoding{UTF-8}
----
-
-```{r setup, include = FALSE}
+## ----setup, include = FALSE----------------------------------------------
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
 )
-```
 
-
-### Individual level variables of interest
-1. Met minutes
-1. Age
-
-##Group level variables of interest.
-1. Volume of visits
-1. Attendance
-1. %Females
-
-We'll be using the automatic ARIMA model fitting machinery from the *forecast* package to simplify this a bit.
-
-```{r}
+## ------------------------------------------------------------------------
 library(lubridate)
 library(forecast)
 library(rstatix)
-```
 
-First let's generate the three data frames of interest; mets, prescheduled appointments (volume), and noshows. Split each into only appointments in 2019 and only appointments in 2020.
-```{r}
+## ------------------------------------------------------------------------
 
 ##Change the year to select the year
 splitbyyear <- function(df, year = "2019"){
@@ -52,16 +26,8 @@ volume2020 <- splitbyyear(RMHF::read_individual_data(fn = "volume.csv"), "2020")
 ##Order by date.
 volume2019 <- volume2019[order(volume2019$Date),]
 volume2020 <- volume2020[order(volume2020$Date),]
-```
 
-Now, let's split off into seperate analyses for each variable. For each, we ask two questions:
-1. Does 2019 differ from 2019?
-1. If that difference exists, is it before and after the implementation of COVID-19 social distancing in Ontario?
-
-####  Individual level data - Met minutes, sex and age.
-
-First, aggregate data on the daily level.
-```{r}
+## ------------------------------------------------------------------------
 ##Should do the heavy lifting for us.
 aggregate_date <- function(date, df, colselect = "Mets"){
   dfdate <- df[df$Date == date, colselect]
@@ -72,23 +38,15 @@ meanmets2020 <- sapply(unique(mets2020$Date), aggregate_date, df = mets2020)
 meanmets2019 <- sapply(unique(mets2019$Date), aggregate_date, df = mets2019)
 meanage2020 <- sapply(unique(volume2020$Date), aggregate_date, df = volume2020, colselect = "Age")
 meanage2019 <- sapply(unique(volume2019$Date), aggregate_date, df = volume2019, colselect = "Age")
-```
 
-We'd expect some autoregressive (ARIMA) structure in the data, so let's check for that.
-
-```{r}
+## ------------------------------------------------------------------------
 library(forecast)
 auto.arima(meanmets2019)
 auto.arima(meanmets2020)
 auto.arima(meanage2019)
 auto.arima(meanage2020)
-```
 
-ARIMA models mostly come up up as white noise processes. So we can't predict anything. Defaulting to anovas and t - tests.
-
-##### Mets
-
-```{r}
+## ------------------------------------------------------------------------
 ##Normal stuff, t - test between data in different years.
 library(rstatix)
 t.test(meanmets2020, meanmets2019[1:length(meanmets2020)], paired = TRUE)
@@ -96,11 +54,8 @@ testdf <- data.frame("covidyear" = meanmets2020,
                      "covid" = c(rep(0,15), rep(1,17)))
 anova_test(data = testdf, 
            formula = covidyear ~ covid)
-```
 
-####  Age
-
-```{r}
+## ------------------------------------------------------------------------
 ##Normal stuff, t - test between data in different years.
 t.test(meanage2020, meanage2019[1:length(meanage2020)], paired = TRUE)
 
@@ -112,18 +67,8 @@ testdf <- data.frame("covidyear" = meanage2020,
                      "covid" = c(rep(0,23), rep(1,31)))
 anova_test(data = testdf, 
            formula = covidyear ~ covid)
-```
 
-So there were no individual level differences between years. Or due to COVID. On to group - level stuff.
-
-##Group level variables of interest.
-1. Volume of visits
-1. Attendance
-1. %Females
-
-####  Volume of visits.
-
-```{r}
+## ------------------------------------------------------------------------
 df <- RMHF::read_group_data()
 df2019 <- as.numeric(df[df$Year == "2019",]$"Prescheduled appointments")
 df2020 <- as.numeric(df[df$Year == "2020",]$"Prescheduled appointments")
@@ -133,13 +78,8 @@ testdf <- data.frame("covidyear" = df2020,
                      "covid" = c(rep(0,6), rep(1,5)))
 anova_test(data = testdf, 
            formula = covidyear ~ covid)
-```
 
-
-
-####  Attendance
-
-```{r}
+## ------------------------------------------------------------------------
 df <- RMHF::read_group_data()
 df2019 <- as.numeric(df[df$Year == "2019",]$"% of patients who were no-shows")
 df2020 <- as.numeric(df[df$Year == "2020",]$"% of patients who were no-shows")
@@ -149,12 +89,8 @@ testdf <- data.frame("covidyear" = df2020,
                      "covid" = c(rep(0,6), rep(1,5)))
 anova_test(data = testdf, 
            formula = covidyear ~ covid)
-```
 
-
-####  %Females
-
-```{r}
+## ------------------------------------------------------------------------
 df <- RMHF::read_group_data()
 df2019 <- as.numeric(df[df$Year == "2019",]$"% Females")
 df2020 <- as.numeric(df[df$Year == "2020",]$"% Females")
@@ -164,11 +100,8 @@ testdf <- data.frame("covidyear" = df2020,
                      "covid" = c(rep(0,6), rep(1,5)))
 anova_test(data = testdf, 
            formula = covidyear ~ covid)
-```
 
-## Correlations between attendance and met-minutes.
-
-```{r}
+## ------------------------------------------------------------------------
 mets2020 <- RMHF::read_group_data()[RMHF::read_group_data()$Year == "2020",]$"Met-minutes"
 mets2019 <- RMHF::read_group_data()[RMHF::read_group_data()$Year == "2019",]$"Met-minutes"
 att2020 <- RMHF::read_group_data()[RMHF::read_group_data()$Year == "2020",]$"% of patients who were no-shows"
@@ -177,4 +110,4 @@ att2019 <- RMHF::read_group_data()[RMHF::read_group_data()$Year == "2019",]$"% o
 #The ith element in meanmets is the mean of the mets collected on ith day in that year.
 cor(as.numeric(mets2019), as.numeric(att2019))
 cor(as.numeric(mets2020), as.numeric(att2020))
-```
+

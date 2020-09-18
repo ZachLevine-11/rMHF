@@ -2,6 +2,7 @@
 
 export(attendance_plot)
 export(create_lag)
+export(individual_mets_plot)
 export(mets_plot)
 export(read_group_data)
 export(read_individual_data)
