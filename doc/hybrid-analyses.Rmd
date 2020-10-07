@@ -107,6 +107,10 @@ t.test(meanage2020, meanage2019[1:length(meanage2020)], paired = TRUE)
 ##Help find the cut point for the intervention.
 age2020map <- data.frame("Age" = meanage2020, "Date" = unique(volume2020$Date), stringsAsFactors = FALSE)[order(lubridate::ymd(data.frame("Age" = meanage2020, "Date" = unique(volume2020$Date), stringsAsFactors = FALSE)$Date)),]
 age2020map <- age2020map[order(age2020map$Date),]
+
+t.test(df2020[1:23], df2020[7:11])
+
+
 testdf <- data.frame("covidyear" = meanage2020,
                      ##Hardcoded groups, don't set.
                      "covid" = c(rep(0,23), rep(1,31)))
@@ -129,10 +133,7 @@ df2019 <- as.numeric(df[df$Year == "2019",]$"Prescheduled appointments")
 df2020 <- as.numeric(df[df$Year == "2020",]$"Prescheduled appointments")
 
 t.test(df2019, df2020, paired = TRUE)
-testdf <- data.frame("covidyear" = df2020,
-                     "covid" = c(rep(0,6), rep(1,5)))
-anova_test(data = testdf, 
-           formula = covidyear ~ covid)
+t.test(df2020[1:6], df2020[7:11])
 ```
 
 
@@ -145,10 +146,7 @@ df2019 <- as.numeric(df[df$Year == "2019",]$"% of patients who were no-shows")
 df2020 <- as.numeric(df[df$Year == "2020",]$"% of patients who were no-shows")
 
 t.test(df2019, df2020, paired = TRUE)
-testdf <- data.frame("covidyear" = df2020,
-                     "covid" = c(rep(0,6), rep(1,5)))
-anova_test(data = testdf, 
-           formula = covidyear ~ covid)
+t.test(df2020[1:6], df2020[7:11])
 ```
 
 
@@ -160,10 +158,7 @@ df2019 <- as.numeric(df[df$Year == "2019",]$"% Females")
 df2020 <- as.numeric(df[df$Year == "2020",]$"% Females")
 
 t.test(df2019, df2020, paired = TRUE)
-testdf <- data.frame("covidyear" = df2020,
-                     "covid" = c(rep(0,6), rep(1,5)))
-anova_test(data = testdf, 
-           formula = covidyear ~ covid)
+t.test(df2020[1:6], df2020[7:11])
 ```
 
 ## Correlations between attendance and met-minutes.

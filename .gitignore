@@ -1,14 +1,13 @@
 Meta
-inst/doc
 .Rproj.user
 .Rbuildignore
 .Rhistory
 .RData
 .Ruserdata
 .Rproj
-inst/
 man/
 .DS_Store
 doc/detail-old-depracated.pdf
 detail-old-depracated.R
 detail-old-depracated.Rmd
+doc
