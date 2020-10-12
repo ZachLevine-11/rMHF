@@ -1,5 +1,6 @@
 #Create the master dataset, copying MET minute values over to the corresponding appointment and patient, and setting any non reported MET values as NA.
 #Make sure to set the working directory to the directory containing the .csv files before you run any of these functions.
+#Move the correct files over to use. Not in the package for security and confidentiality.
 create_data <- function(){
   aptTypes <- read.csv("allApptsFinal.csv", stringsAsFactors = FALSE)
   justMets <- read.csv("metMinsFinal.csv", stringsAsFactors = FALSE)
