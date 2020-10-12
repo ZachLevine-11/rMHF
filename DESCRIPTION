@@ -1,6 +1,6 @@
 Package: RMHF
 Type: Package
-Title: Analyze the MHF program.
+Title: Software package for daily-level, individual level, and weekly level aggregation, statistical modelling, hypothesis testing, and analysis for the medical records of a cardiac rehabilitation program.
 Version: 0.1.0
 Author: Zachary Levine
 Maintainer: Zachary <levinez@mcmaster.ca>
