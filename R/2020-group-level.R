@@ -121,3 +121,26 @@ mets_plot_aaron <- function(){
   p <- p + theme(axis.text = element_text(size = 12), axis.title = element_text(size = 14, face ='bold'), legend.position = 'top')
   p
 }
+
+#' @import ggplot2
+#' @import dplyr
+#' @import anytime
+#' @export
+#'
+#' @author Aaron Rosenfeld.
+#'
+selfreportplot_aaron <- function(){
+  df <- read_group_data()
+  df$SR <- as.numeric(df$"% with MET-minute data")
+  df$mets <- as.numeric(df$"Met-minutes")
+  df$weeks <- c(1:11, 1:11)
+  df$year <- c(rep("2019", 11), rep("2020", 11))
+  #PLotting 2020 only
+  p <- ggplot(df, mapping = aes(x = weeks, y = SR, colour = year)) + geom_point(size = 3) + labs(x = "Weeks", y = "Percentage Self-Reporting MET-Minute Data")
+  p <- p + geom_line() + geom_vline(xintercept=6, linetype="dotted")
+  p <- p + theme_classic(base_size = 13, base_line_size = 1, base_rect_size = 1)
+  p <- p + scale_x_continuous(breaks = seq(0, 11, 1))
+  p <- p + scale_y_continuous(limits = c(0,100), breaks = seq(0, 100, 10), labels = function(x) paste0(x, "%"))
+  p <- p + theme(axis.text = element_text(size = 12), axis.title = element_text(size = 14, face ='bold'), legend.position = 'top')
+  p
+}

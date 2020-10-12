@@ -93,8 +93,8 @@ ARIMA models mostly come up up as white noise processes. So we can't predict any
 library(rstatix)
 t.test(meanmets2020, meanmets2019[1:length(meanmets2020)], paired = TRUE)
 covidIndex <- as.numeric(min(which(unique(mets2020)$Date == lubridate::ymd("2020/03/16"))))
-df2020before <- df2020[1:covidIndex]
-df2020after <- df2020[covidIndex + 1:length(df2020)]
+df2020before <- mets2020[1:covidIndex]
+df2020after <- mets2020[covidIndex + 1:length(df2020)]
 ```
 
 ####  Age
@@ -103,8 +103,8 @@ df2020after <- df2020[covidIndex + 1:length(df2020)]
 ##Normal stuff, t - test between data in different years.
 t.test(meanage2020, meanage2019[1:length(meanage2020)], paired = TRUE)
 covidIndex <- as.numeric(min(which(unique(mets2020)$Date == lubridate::ymd("2020/03/16"))))
-df2020before <- df2020[1:covidIndex]
-df2020after <- df2020[covidIndex + 1:length(df2020)]
+df2020before <- meanage2020[1:covidIndex]
+df2020after <- meanage2020[covidIndex + 1:length(df2020)]
 ```
 
 So there were no individual level differences between years. Or due to COVID. On to group - level stuff.
