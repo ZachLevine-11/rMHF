@@ -5,6 +5,7 @@ Meta
 .RData
 .Ruserdata
 .Rproj
+inst/doc/2019
 man/
 .DS_Store
 doc/detail-old-depracated.pdf
